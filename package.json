@@ -1,0 +1,47 @@
+{
+  "name": "alumni",
+  "version": "1.0.0",
+  "description": "Alumni",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitesh9001/alumni-backend.git"
+  },
+  "keywords": [
+    "Alumni",
+    "spervision",
+    "backend",
+    "nodejs",
+    "college",
+    "project"
+  ],
+  "author": "Nitesh-Singh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nitesh9001/alumni-backend/issues"
+  },
+  "homepage": "https://github.com/nitesh9001/alumni-backend#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "fs": "^0.0.1-security",
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.6.4",
+    "mongoose": "^5.12.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.2",
+    "nodemon": "^2.0.7",
+    "path": "^0.12.7",
+    "socket.js": "^0.1.4"
+  }
+}
