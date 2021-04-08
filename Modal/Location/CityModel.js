@@ -1,25 +1,23 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const stateSchema = Schema({
 
+const citySchema = new Schema({
   name: {
     type: String,
     required:true,
     unique: true,
   },
-  sortname: {
-    type: String
-  },
-  country:{},
-  countryId: 
+  state:{},
+  stateId: 
     {
       type: Schema.Types.ObjectId,
-      ref: 'countries'
+      ref: 'states'
     }
-  },
- {
+},
+{
   timestamps: true,
 });
 
-const State = mongoose.model("State", stateSchema);
-module.exports = State
+
+const City = mongoose.model("City", citySchema);
+module.exports = City

@@ -5,7 +5,6 @@ const multer = require("multer");
 const path = require("path");
 const City =require('../Modal/Location/CityModel');
 //GET ALL College LIST
-
 router.get("/get", async (req, res) => {
   try {
     const collegeList = await College.find();
@@ -100,23 +99,6 @@ router.delete("/delete/:collegeId", async (req, res) => {
       _id: req.params.collegeId,
     });
     res.json(removePost);
-  } catch (err) {
-    res.json({ message: err });
-  }
-});
-
-router.patch("/update/:collegeId", async (req, res) => {
-  console.log(req.params.collegeId);
-  try {
-    const udpateData= req.body
-    const changeCollege = await College.findOneAndUpdate({
-      _id: req.params.collegeId},{
-          $set: 
-          udpateData
-      },
-      {upsert:true}
-      );
-    res.json({status:true,data:changeCollege});
   } catch (err) {
     res.json({ message: err });
   }
