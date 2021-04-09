@@ -7,8 +7,7 @@ const citySchema = new Schema({
     required:true,
     unique: true,
   },
-  state:{},
-  stateId: 
+  state: 
     {
       type: Schema.Types.ObjectId,
       ref: 'states'
@@ -19,5 +18,5 @@ const citySchema = new Schema({
 });
 
 
-const City = mongoose.model("City", citySchema);
+const City = mongoose.model("cities", citySchema);
 module.exports = City

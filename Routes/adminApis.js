@@ -14,7 +14,8 @@ require("dotenv").config();
 //GET ALL College LIST
 router.get("/get", async (req, res) => {
   try {
-    const adminList = await Admin.find();
+    const adminList = await Admin.find().select(
+        "name email admin phoneNo title createdAt updatedAt");
     res.json({ status: true, data: adminList });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
@@ -25,17 +26,9 @@ router.get("/get", async (req, res) => {
 router.get("/get/:adminId", async (req, res) => {
   console.log(req.params.adminId);
   try {
-    const adminDet = await Admin.findById(req.params.adminId);
-    res.json({ status: true, data: {
-      _id:admin._id ,
-      name: admin.name,
-      email: admin.email,
-      admin: true,
-      phoneNo: admin.phoneNo,
-      title: admin.title,
-      createdAt: admin.createdAt,
-      updatedAt: admin.updatedAt,
-      }
+    const adminDet = await Admin.findById(req.params.adminId).select(
+      "name email admin phoneNo title createdAt updatedAt");
+    res.json({ status: true, data: adminDet
     });
   } catch (err) {
     res.json({ message: err });
@@ -184,7 +177,7 @@ router.put("/update/:adminId", async (req, res) => {
       },
       {upsert:true}
       );
-    res.json({status:true,data:{
+      res.json({status:true,data:{
       _id:changeAdmin._id,
       name: changeAdmin.name,
       email: changeAdmin.email,

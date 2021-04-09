@@ -9,11 +9,10 @@ const countrySchema = new Schema({
       required:true,
       unique: true,
     },
-    
   }, {
     timestamps: true,
   });
   
-const Country  = mongoose.model("Country", countrySchema);
+const Country  = mongoose.model("countries", countrySchema);
 module.exports = Country
   

@@ -8,7 +8,7 @@ const City =require('../Modal/Location/CityModel');
 
 router.get("/get", async (req, res) => {
   try {
-    const collegeList = await College.find();
+    const collegeList = await College.find().select("name status collegeCode city createdAt updatedAt").populate('city',"name state");
     res.json({ status: true, data: collegeList });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
@@ -19,7 +19,7 @@ router.get("/get", async (req, res) => {
 router.get("/get/:collegeId", async (req, res) => {
   console.log(req.params.collegeId);
   try {
-    const postDet = await College.findById(req.params.collegeId);
+    const postDet = await College.findById(req.params.collegeId).select("name status collegeCode city createdAt updatedAt").populate('city',"name state");
     res.json({ status: true, data: postDet });
   } catch (err) {
     res.json({ message: err });
@@ -52,12 +52,11 @@ const upload = multer({
 router.post("/add", async (req, res) => {
   try{
     if(req.body.cityId){
-   const city = await City.findById(req.body.cityId)
+  //  const city = await City.findById(req.body.cityId)
     const newCollege = await new College({
       name: req.body.name,
-      collegeCode:req.body.code,
-      cityId: req.body.cityId,
-      city:city,
+      collegeCode:req.body.collegeCode,
+      city: req.body.cityId,
       status: req.body.status,
     });
     newCollege
@@ -65,7 +64,6 @@ router.post("/add", async (req, res) => {
       .then((data) => {
         res.json({
           status: true,
-          message: "Data added successfully",
           data: newCollege,
         });
       })
@@ -77,7 +75,7 @@ router.post("/add", async (req, res) => {
             message: "Validation error `name` should be unique",
           });
         } else {
-          res.json({ status: false, message: "Data not added" });
+          res.json({ status: false, message: "Data not added" ,error:err});
         }
       });
     }
@@ -111,9 +109,8 @@ router.patch("/update/:collegeId", async (req, res) => {
     const udpateData= req.body
     const changeCollege = await College.findOneAndUpdate({
       _id: req.params.collegeId},{
-          $set: 
-          udpateData
-      },
+          $set:udpateData
+        },
       {upsert:true}
       );
     res.json({status:true,data:changeCollege});

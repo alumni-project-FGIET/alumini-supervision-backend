@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const stateSchema = Schema({
 
+
+const stateSchema = Schema({
   name: {
     type: String,
     required:true,
@@ -10,16 +11,17 @@ const stateSchema = Schema({
   sortname: {
     type: String
   },
-  country:{},
-  countryId: 
+  country: 
     {
       type: Schema.Types.ObjectId,
-      ref: 'countries'
+      ref: 'countries',
+      required:true
     }
   },
  {
   timestamps: true,
-});
+ }
+);
 
-const State = mongoose.model("State", stateSchema);
+const State = mongoose.model("states", stateSchema);
 module.exports = State

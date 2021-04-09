@@ -6,15 +6,16 @@ const CollegeSchema= Schema({
             type:String,
             required:true,
         },
-        collegeCode:{type:String,
+        collegeCode:{
+            type:String,
             required:true,
             unique:true
         },
-        city:{},
-        cityId: 
+        city: 
           {
             type: Schema.Types.ObjectId,
-            ref: 'cities'
+            ref: 'cities',
+            required:true
           },
         status:{
             type:Boolean,
@@ -23,4 +24,4 @@ const CollegeSchema= Schema({
     timestamps:true
 })
 
-module.exports = mongoose.model('College',CollegeSchema)
+module.exports = mongoose.model('colleges',CollegeSchema)

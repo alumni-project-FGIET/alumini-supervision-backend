@@ -17,8 +17,7 @@ const userSchema = Schema(
       type: String,
       required: true,
     },
-    college:{},
-    collegeId: {
+    college: {
       required: true,
       type: Schema.Types.ObjectId,
       ref:'colleges'
@@ -26,6 +25,10 @@ const userSchema = Schema(
     rollNo: {
       type: String,
       required: true,
+    },
+    password:{
+      type: String,
+      required: true,  
     },
     status: {
       type: Boolean,
@@ -36,4 +39,4 @@ const userSchema = Schema(
   }
 );
 
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model("users", userSchema);

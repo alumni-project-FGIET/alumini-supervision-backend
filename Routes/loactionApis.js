@@ -12,7 +12,7 @@ const City = require('../Modal/Location/CityModel');
 //GET ALL  LIST
 router.get('/country/get',async (req,res)=>{
     try{
-        const countryList= await Country.find();
+        const countryList= await Country.find().select("name sortname createdAt updatedAt");
         res.status(200).json({status:true,data:countryList});
        }
        catch(err){
@@ -22,9 +22,10 @@ router.get('/country/get',async (req,res)=>{
 
 //GET ONE  BY ID
 router.get('/country/:countryId',async (req,res)=>{
+
     console.log(req.params.countryId)
     try{
-        const postDet=await Country.findById(req.params.countryId);
+        const postDet=await Country.findById(req.params.countryId).select("name sortname createdAt updatedAt");
         res.json({status:true,data:postDet});
        }
        catch(err){
@@ -97,7 +98,7 @@ router.patch("/update/:countryId", async (req, res) => {
 //GET ALL  LIST
 router.get('/state/get',async (req,res)=>{
     try{
-        stateList= await State.find();
+        stateList= await State.find().select("name sortname country createdAt updatedAt").populate('country',"name sortname");
         res.json({status:true,data:stateList});
        }
        catch(err){
@@ -109,7 +110,7 @@ router.get('/state/get',async (req,res)=>{
 router.get('/state/:stateId',async (req,res)=>{
     console.log(req.params.stateId)
     try{
-        const postDet=await State.findById(req.params.stateId);
+        const postDet=await State.findById(req.params.stateId).select("name sortname country createdAt updatedAt").populate('country',"name sortname");
         res.json({status:true,data:postDet});
        }
        catch(err){
@@ -120,13 +121,10 @@ router.get('/state/:stateId',async (req,res)=>{
 router.post('/state/add', async (req,res) => {
     try{
      if(req.body.countryId){
-      const country = await Country.findById(req.body.countryId)
-      console.log(country)
       const newstate = new State({
           sortname: req.body.sortname,
           name: req.body.name,
-          country:country,
-          countryId:req.body.countryId
+          country:req.body.countryId
         });
 
         await newstate
@@ -151,12 +149,12 @@ router.post('/state/add', async (req,res) => {
           });
         }
         else{
-          res.json({ status: false, message: "StateId should not be null" });
+          res.json({ status: false, message: "countryId should not be null" });
         }
     }
     catch(err){
       console.log(req.body)
-      res.send({err:'error'})
+      res.send({err:err})
     }
       
 });
@@ -205,7 +203,7 @@ router.patch("/update/:stateId", async (req, res) => {
 //GET ALL  LIST
 router.get('/city/get',async (req,res)=>{
   try{
-      cityList= await City.find();
+      cityList= await City.find().select("name state createdAt updatedAt").populate('state',"name sortname country");
       res.json({status:true,data:cityList});
      }
      catch(err){
@@ -217,7 +215,7 @@ router.get('/city/get',async (req,res)=>{
 router.get('/city/:cityId',async (req,res)=>{
   console.log(req.params.cityId)
   try{
-      const postDet=await City.findById(req.params.cityId);
+      const postDet=await City.findById(req.params.cityId).select("name state createdAt updatedAt").populate('state',"name sortname country");
       res.json({status:true,data:postDet});
      }
      catch(err){
@@ -228,12 +226,9 @@ router.get('/city/:cityId',async (req,res)=>{
 router.post('/city/add', async (req,res) => {
   try{
     if(req.body.stateId){
-      const state = await State.findById(req.body.stateId)
-      console.log(state)
       const newCity = new City({
           name: req.body.name,
-          state:state,
-          stateId:req.body.stateId
+          state:req.body.stateId
         });
   
         await newCity
