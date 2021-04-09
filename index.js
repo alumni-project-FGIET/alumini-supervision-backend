@@ -14,6 +14,10 @@ require('dotenv').config()
 
 const port = process.env.PORT || 5000 ;
 const server = http.createServer(app);
+
+app.get('/',(req,res)=>{
+    res.send('Alumni Supervision')
+})
 app.use(cors());
 // app.use(bodyParser.json())
 app.use(express.json())
