@@ -75,7 +75,7 @@ router.delete('/country/delete/:countryId',async (req,res)=>{
        }
 });
 
-router.patch("/update/:countryId", async (req, res) => {
+router.patch("/country/update/:countryId", async (req, res) => {
   console.log(req.params.countryId);
   try {
     const udpateData = req.body
@@ -174,7 +174,7 @@ router.delete('/state/delete/:stateId',async (req,res)=>{
        }
 });
 
-router.patch("/update/:stateId", async (req, res) => {
+router.patch("/state/update/:stateId", async (req, res) => {
   console.log(req.params.stateId);
   try {
     const udpateData = req.body
@@ -279,7 +279,7 @@ router.delete('/city/delete/:cityId',async (req,res)=>{
      }
 });
 
-router.patch("/update/:cityId", async (req, res) => {
+router.patch("city/update/:cityId", async (req, res) => {
   console.log(req.params.cityId);
   try {
     const udpateData = req.body
