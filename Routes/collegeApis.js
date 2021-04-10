@@ -16,7 +16,7 @@ router.get("/get", async (req, res) => {
 });
 
 //GET ONE College BY ID
-router.get("/get/:collegeId", async (req, res) => {
+router.get("/:collegeId", async (req, res) => {
   console.log(req.params.collegeId);
   try {
     const postDet = await College.findById(req.params.collegeId).select("name status collegeCode city createdAt updatedAt").populate('city',"name state");
@@ -52,7 +52,6 @@ const upload = multer({
 router.post("/add", async (req, res) => {
   try{
     if(req.body.cityId){
-  //  const city = await City.findById(req.body.cityId)
     const newCollege = await new College({
       name: req.body.name,
       collegeCode:req.body.collegeCode,
@@ -91,7 +90,7 @@ router.post("/add", async (req, res) => {
 });
 
 //DELETE THE College BY ID
-router.delete("/delete/:collegeId", async (req, res) => {
+router.delete("/:collegeId", async (req, res) => {
   console.log(req.params.collegeId);
   try {
     const removePost = await College.remove({
@@ -103,12 +102,12 @@ router.delete("/delete/:collegeId", async (req, res) => {
   }
 });
 
-router.patch("/update/:collegeId", async (req, res) => {
+router.patch("/:collegeId", async (req, res) => {
   console.log(req.params.collegeId);
   try {
     const udpateData= req.body
     const changeCollege = await College.findOneAndUpdate({
-      _id: req.params.collegeId},{
+         _id: req.params.collegeId},{
           $set:udpateData
         },
       {upsert:true}

@@ -4,12 +4,13 @@
   "description": "Alumni",
   "main": "index.js",
   "scripts": {
+    "package": "npm install",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nitesh9001/alumni-backend.git"
+    "url": "git+https://github.com/alumni-project-FGIET/alumini-supervision-backend.git"
   },
   "keywords": [
     "Alumni",
@@ -22,9 +23,9 @@
   "author": "Nitesh-Singh",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nitesh9001/alumni-backend/issues"
+    "url": "https://github.com/alumni-project-FGIET/alumini-supervision-backend.git/issues"
   },
-  "homepage": "https://github.com/nitesh9001/alumni-backend#readme",
+  "homepage": "https://github.com/alumni-project-FGIET/alumini-supervision-backend.git#readme",
   "dependencies": {
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",

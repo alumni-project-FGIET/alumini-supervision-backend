@@ -140,6 +140,9 @@ const upload = multer({
   storage: storage,
 }).single("file");
 
+
+
+
 //ADD User
 router.post(
   "/register",
@@ -204,6 +207,43 @@ router.post(
     }
   }
 );
+
+
+
+//UPDATE THE College BY ID
+router.patch("/:userId", async (req, res) => {
+  console.log(req.params.userId);
+  try {
+    const {name,
+      email,
+      status,
+      phoneNo }= req.body;
+    const changeuser = await User.findOneAndUpdate(
+      {
+        _id: req.params.userId,
+      },
+      {
+        $set: udpateData,
+      },
+      { upsert: true }
+    );
+    res.json({
+      status: true,
+      data: {
+        name: changeuser.name,
+        email: changeuser.email,
+        status:changeuser.status,
+        rollNo:changeuser.rollNo,
+        phoneNo: changeuser.phoneNo,
+        college:changeuser.collegeId,
+      },
+    });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+
 
 //DELETE THE College BY ID
 router.delete("/delete/:userId", async (req, res) => {
