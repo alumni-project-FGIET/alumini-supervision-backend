@@ -186,17 +186,17 @@ router.patch("/:adminId", async (req, res) => {
     );
     res.json({
       status: true,
-      data: {
-        _id: changeAdmin._id,
-        name: changeAdmin.name,
-        email: changeAdmin.email,
-        admin: changeAdmin.admin,
-        status: changeAdmin.status,
-        phoneNo: changeAdmin.phoneNo,
-        title: changeAdmin.title,
-        createdAt: changeAdmin.createdAt,
-        updatedAt: changeAdmin.updatedAt,
-      },
+      // data: {
+      //   _id: changeAdmin._id,
+      //   name: changeAdmin.name,
+      //   email: changeAdmin.email,
+      //   admin: changeAdmin.admin,
+      //   status: changeAdmin.status,
+      //   phoneNo: changeAdmin.phoneNo,
+      //   title: changeAdmin.title,
+      //   createdAt: changeAdmin.createdAt,
+      //   updatedAt: changeAdmin.updatedAt,
+      // },
     });
   } catch (err) {
     res.json({ message: err });
