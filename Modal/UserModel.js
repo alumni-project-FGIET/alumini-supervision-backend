@@ -10,8 +10,10 @@ const userSchema = Schema(
     },
     phoneNo: {
       type: String,
-      unique: true,
       required: true,
+    },
+    verified:{
+      type:Boolean
     },
     name: {
       type: String,
@@ -25,6 +27,9 @@ const userSchema = Schema(
     rollNo: {
       type: String,
       required: true,
+    },
+    verifyToken: {
+      type: String,
     },
     password:{
       type: String,
