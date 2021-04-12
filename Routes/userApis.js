@@ -173,7 +173,7 @@ router.post(
     }
     const {
       firstName,
-      lasttName,
+      lastName,
       rollNo,
       collegeId,
       status,
