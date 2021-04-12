@@ -168,7 +168,7 @@ const upload = multer({
 router.post(
   "/register",
   [
-    check("name", "Name is required").not().isEmpty(),
+    check("firstName", "Name is required").not().isEmpty(),
     check("email", "Please enter valid email").isEmail(),
     check("collegeId", "Please Select valid College").exists(),
     check(
