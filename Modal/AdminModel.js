@@ -31,7 +31,14 @@ const adminSchema = Schema(
     admin:{
       type:Boolean
    },
+   resetPasswordToken:{
+    type:String
   },
+  resetPasswordExpires:{
+    type:String
+  }
+  },
+
   {
     timestamps: true,
   }

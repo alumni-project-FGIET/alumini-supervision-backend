@@ -15,9 +15,13 @@ const userSchema = Schema(
     verified:{
       type:Boolean
     },
-    name: {
+    firstName: {
       type: String,
       required: true,
+    },
+    lastName: {
+      type: String,
+   
     },
     college: {
       required: true,
@@ -38,6 +42,12 @@ const userSchema = Schema(
     status: {
       type: Boolean,
     },
+    resetPasswordToken:{
+      type:String
+    },
+    resetPasswordExpires:{
+      type:String
+    }
   },
   {
     timestamps: true,
