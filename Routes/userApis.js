@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../Modal/UserModel");
 const nodemailer = require("nodemailer");
-
+const crypto = require("crypto");
 
 //GET ALL College LIST
 router.get("/get", async (req, res) => {
@@ -346,7 +346,69 @@ router.post('/verify',async (req,res)=>{
 })
 
 
-router.post('/forgetPassword',async(req,res)=>{
-  
+router.post('/forgetPassword',async (req,res)=>{
+    try{
+   const tokenValue = await crypto.randomBytes(20, function(err, buf) {
+        var token = buf.toString('hex');
+        console.log(token,err)
+        User.findOne({ email: req.body.email }, function(err, user) {
+              if (!user) {       
+                console.log('wrong')
+                return  res.status(400).json({'errors':'No user found'});
+              }
+              user.resetPasswordToken = token;
+              user.resetPasswordExpires = Date.now(); // 1 hour  
+              user.save(function(err) {
+          res.json({status:true, data: 'reset Password is set Sucessfully' });
+               
+              });
+            });
+      });
+      console.log(tokenValue)
+   
+  }
+  catch(err){
+    res.json({status:false, message: err });
+  }
 })
+
+
+router.post('/reset' , async (req,res)=>{
+   
+   await User.findOne({ resetPasswordToken :req.body.resetPasswordToken }).then(user => {    
+      if (user.resetPasswordToken===null) {
+        console.error('password reset link is invalid or has expired');
+        res.status(403).json({status:true,data:'password reset link is invalid or has expired'});
+      } else if (user != null) {
+        console.log('user exists in db');
+        bcrypt.genSalt(10, (err, salt) => {
+          bcrypt.hash(req.body.password, salt, (err, hash) => {
+            if (err) throw err;
+            user.password = hash;
+            user
+              .save()
+              .then(user => res.json(user))
+              .catch(err => console.log(err));
+            user
+            .updateOne({
+            password:hash,
+            resetPasswordToken:null,
+            resetPasswordExpires:null
+            })
+          .then(() => {
+            console.log(`password updated ${user.password}`);
+            res.status(200).json({status:true, message: 'password updated' });
+          });
+        });
+      });
+      } 
+      else {
+        console.error('no user exists in db to update');
+        res.status(401).json({status:false,data:'no user exists in db to update'});
+      }
+  
+  })
+})
+
+
 module.exports = router;

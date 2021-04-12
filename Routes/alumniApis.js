@@ -1,0 +1,453 @@
+const express = require("express");
+const router = express.Router();
+const College = require("../Modal/collegeModels");
+const multer = require("multer");
+const path = require("path");
+const City = require("../Modal/Location/CityModel");
+const { check, validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const Alumni = require("../Modal/AlumniModel");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+
+//GET ALL College LIST
+router.get("/get", async (req, res) => {
+  try {
+    const alumniList = await Alumni.find({ status: true })
+      .select("name email phoneNo status college job jobProvider createdAt")
+      .populate("college")
+      .populate("jobLocation");
+
+    res.json({ status: true, data: alumniList });
+  } catch (err) {
+    res.json({ status: false, message: "Data not Found" });
+  }
+});
+
+//GET ONE College BY ID
+router.get("/get/:alumniId", async (req, res) => {
+  console.log(req.params.alumniId);
+  try {
+    const postDet = await Alumni.find({
+      _id: req.params.alumniId,
+      status: true,
+    })
+      .select("name email phoneNo status college job jobProvider createdAt")
+      .populate("college")
+      .populate("jobLocation");
+    res.json({ status: true, data: postDet });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/admin-get", async (req, res) => {
+  try {
+    const alumniList = await Alumni.find()
+      .select("name email phoneNo status college job jobProvider createdAt")
+      .populate("college")
+      .populate("jobLocation");
+    res.json({ status: true, data: alumniList });
+  } catch (err) {
+    res.json({ status: false, message: "Data not Found" });
+  }
+});
+
+//GET ONE College BY ID
+router.get("/admin-get/:alumniId", async (req, res) => {
+  console.log(req.params.alumniId);
+  try {
+    const postDet = await Alumni.find({ _id: req.params.alumniId })
+      .select("name email phoneNo status college job jobProvider createdAt")
+      .populate("college")
+      .populate("jobLocation");
+    res.json({ status: true, data: postDet });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+// GET College BY SEARCH
+router.post("/search", async (req, res) => {
+  try {
+    var regex = new RegExp(req.body.name, "i");
+    const alumniList = await Alumni.find({ name: regex });
+    res.json({ status: true, data: alumniList });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.post(
+  "/login",
+  [
+    check("email", "Please enter valid email").isEmail(),
+    check("password", "Please enter a password").exists(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { email, password } = req.body;
+    try {
+      let alumni = await Alumni.findOne({ email: email });
+      if (!alumni) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: "Invalid Credentials" }] });
+      }
+      if (alumni.status === true) {
+        const isMatch = await bcrypt.compare(password, alumni.password);
+        if (!isMatch) {
+          return res
+            .status(400)
+            .json({ errors: [{ msg: "Invalid Credentials" }] });
+        }
+        const payload = {
+          user: {
+            email: alumni.email,
+          },
+        };
+        jwt.sign(
+          payload,
+          process.env.JWT,
+          {
+            expiresIn: 360000,
+          },
+          (err, token) => {
+            if (token) {
+              res.json({
+                status: true,
+                data: {
+                  _id: alumni._id,
+                  name: alumni.name,
+                  email: alumni.email,
+                  phoneNo: alumni.phoneNo,
+                  alumni: alumni.alumni,
+                  status: alumni.status,
+                  job: alumni.job,
+                  jobProvider: alumni.jobProvider,
+                  rollNo: alumni.rollNo,
+                  college: alumni.college,
+                  createdAt: alumni.createdAt,
+                  updatedAt: alumni.updatedAt,
+                  token: token,
+                },
+              });
+            } else {
+              res.json({ status: false, message: "token not generated " });
+            }
+          }
+        );
+      } else {
+        res.json({
+          status: false,
+          message: "alumni is blocked please contact other alumni",
+        });
+      }
+    } catch (err) {
+      res.json({ status: false, message: "Login failed" });
+    }
+  }
+);
+
+const storage = multer.diskStorage({
+  destination: "./uploads/",
+  filename: function (req, file, cb) {
+    cb(null, "files-" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+}).single("file");
+
+//ADD Alumni
+router.post(
+  "/register",
+  [
+    check("name", "Name is required").not().isEmpty(),
+    check("email", "Please enter valid email").isEmail(),
+    check("collegeId", "Please Select valid College").exists(),
+    check(
+      "password",
+      "Please enter a password with 6 or more characters"
+    ).isLength({ min: 6 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const {
+      name,
+      rollNo,
+      collegeId,
+      email,
+      password,
+      phoneNo,
+      jobs,
+      from,
+      to,
+      yearOfExperienc,
+      jobTitle,
+      jobCompany,
+      jobLocation,
+      jobProvider,
+    } = req.body;
+    if(jobs.isLength <0 ){
+        return res
+        .status(400)
+        .json({status:false, errors: { msg: "job array  should not be empty" } });
+    }
+
+    try {
+      let alumni = await Alumni.findOne({ email: email });
+      if (alumni) {
+        return res
+          .status(400)
+          .json({ errors: { msg: "Alumni already exists" } });
+      }
+      const salt = await bcrypt.genSalt(10);
+      const passwordHased = await bcrypt.hash(password, salt);
+    //   const job={
+    //     from:from,
+    //     to:to,
+    //     yearOfExperienc:yearOfExperienc,
+    //     jobTitle:tobTitle,
+    //     jobCompany:jobCompany,
+    //     jobLocation:jobLocation
+    //   }
+      const newAlumni = new Alumni({
+        name: name,
+        email: email,
+        phoneNo: phoneNo,
+        alumni: true,
+        status: false,
+        rollNo: rollNo,
+        jobs:jobs,
+        jobProvider:jobProvider,
+        verified: false,
+        college: collegeId,
+        password: passwordHased,
+      });
+      newAlumni.save();
+
+      const payload = {
+        alumni: {
+          email: email,
+        },
+      };
+
+      jwt.sign(payload, process.env.JWT, function (err, token) {
+        console.log(err, token);
+        if (token) {
+          res.json({
+            status: true,
+            data: {
+              name: name,
+              email: email,
+              alumni: true,
+              status: false,
+              rollNo: rollNo,
+              jobs:jobs,
+              jobProvider:jobProvider,
+              phoneNo: phoneNo,
+              verified: false,
+              college: collegeId,
+              token: token,
+            },
+          });
+        }
+      });
+      //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
+    } catch (err) {
+      console.log(req.body);
+      res.json({ status: false, message: "Alumni not added" });
+    }
+  }
+);
+
+//UPDATE THE College BY ID
+router.patch("/:alumniId", async (req, res) => {
+  console.log(req.params.alumniId);
+  try {
+    const alumniData = req.body;
+    const changealumni = await Alumni.findOneAndUpdate(
+      {
+        _id: req.params.alumniId,
+      },
+      {
+        $set: alumniData,
+      },
+      { upsert: true, returnNewDocument: true }
+    );
+    res.json({
+      status: true,
+    });
+  } catch (err) {
+    res.json({ status:false,message: err });
+  }
+});
+
+//DELETE THE College BY ID
+router.delete("/delete/:alumniId", async (req, res) => {
+  console.log(req.params.alumniId);
+  try {
+    const removePost = await Alumni.remove({
+      _id: req.params.alumniId,
+    });
+    res.json(removePost);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.post("/send-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const alumniDet = await Alumni.find({ email: email });
+
+    if (alumniDet) {
+      var smtpTransport = await nodemailer.createTransport({
+        service: "Gmail",
+        auth: {
+          alumni: "singhnitesh9001@gmail.com",
+          pass: `${process.env.EMAIL_PASSWORD}`,
+        },
+      });
+      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+      ramdomNo = String(ramdomNo);
+      ramdomNo = ramdomNo.substring(0, 4);
+      console.log(ramdomNo, alumniDet[0]._id);
+      var mailOptions = {
+        to: email,
+        from: "singhnitesh9001@gmail.com",
+        subject: "Verify Account",
+        html:
+          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+          ramdomNo +
+          "</h1></div>",
+      };
+      let info = await smtpTransport.sendMail(mailOptions, function (err) {
+        console.log("err", err, alumniDet);
+        if (!err) {
+          res.json({ status: true, message: "Email Send to mail" });
+        } else {
+          res.json({ status: false, message: "Email not Send to mail" });
+        }
+      });
+      const alumniData = {
+        verifyToken: ramdomNo,
+      };
+      const changealumni = await Alumni.findByIdAndUpdate(
+        {
+          _id: alumniDet[0]._id,
+        },
+        {
+          $set: {
+            verifyToken: ramdomNo,
+          },
+        },
+        { upsert: true }
+      );
+    }
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.post("/verify", async (req, res) => {
+  const { email, tokenValue } = req.body;
+  try {
+    const alumniDet = await Alumni.find({ email: email });
+    if (alumniDet[0].verifyToken == tokenValue) {
+      const changealumni = await Alumni.findByIdAndUpdate(
+        {
+          _id: alumniDet[0]._id,
+        },
+        {
+          $set: {
+            verified: true,
+          },
+        },
+        { upsert: true }
+      );
+      res.json({ status: true, message: "verified" });
+    }
+  } catch (err) {
+    res.json({ status: false, message: "Not verified" });
+  }
+});
+
+router.post("/forgetPassword", async (req, res) => {
+  try {
+    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+      var token = buf.toString("hex");
+      console.log(token, err);
+      Alumni.findOne({ email: req.body.email }, function (err, alumni) {
+        if (!alumni) {
+          console.log("wrong");
+          return res.status(400).json({ errors: "No alumni found" });
+        }
+        alumni.resetPasswordToken = token;
+        alumni.resetPasswordExpires = Date.now(); // 1 hour
+        alumni.save(function (err) {
+          res.json({ status: true, data: "reset Password is set Sucessfully" });
+        });
+      });
+    });
+    console.log(tokenValue);
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
+router.post("/reset", async (req, res) => {
+  await Alumni.findOne({
+    resetPasswordToken: req.body.resetPasswordToken,
+  }).then((alumni) => {
+    if (alumni.resetPasswordToken === null) {
+      console.error("password reset link is invalid or has expired");
+      res
+        .status(403)
+        .json({
+          status: true,
+          data: "password reset link is invalid or has expired",
+        });
+    } else if (alumni != null) {
+      console.log("alumni exists in db");
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(req.body.password, salt, (err, hash) => {
+          if (err) throw err;
+          alumni.password = hash;
+          alumni
+            .save()
+            .then((alumni) => res.json(alumni))
+            .catch((err) => console.log(err));
+          alumni
+            .updateOne({
+              password: hash,
+              resetPasswordToken: null,
+              resetPasswordExpires: null,
+            })
+            .then(() => {
+              console.log(`password updated ${alumni.password}`);
+              res
+                .status(200)
+                .json({ status: true, message: "password updated" });
+            });
+        });
+      });
+    } else {
+      console.error("no alumni exists in db to update");
+      res
+        .status(401)
+        .json({ status: false, data: "no alumni exists in db to update" });
+    }
+  });
+});
+
+module.exports = router;

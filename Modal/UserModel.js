@@ -38,6 +38,12 @@ const userSchema = Schema(
     status: {
       type: Boolean,
     },
+    resetPasswordToken:{
+      type:String
+    },
+    resetPasswordExpires:{
+      type:String
+    }
   },
   {
     timestamps: true,

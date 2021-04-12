@@ -203,7 +203,13 @@ router.patch("/state/update/:stateId", async (req, res) => {
 //GET ALL  LIST
 router.get('/city/get',async (req,res)=>{
   try{
-      cityList= await City.find().select("name state createdAt updatedAt").populate('state',"name sortname country");
+      cityList= await City.find().select("name state createdAt updatedAt").populate({path : 'state',
+      select:'name',
+      populate : {
+        path : 'country',
+        select:'name',
+      }
+    });
       res.json({status:true,data:cityList});
      }
      catch(err){
@@ -215,7 +221,13 @@ router.get('/city/get',async (req,res)=>{
 router.get('/city/:cityId',async (req,res)=>{
   console.log(req.params.cityId)
   try{
-      const postDet=await City.findById(req.params.cityId).select("name state createdAt updatedAt").populate('state',"name sortname country");
+      const postDet=await City.findById(req.params.cityId).populate({path : 'state',
+      select:'name',
+      populate : {
+        path : 'country',
+        select:'name',
+      }
+    });
       res.json({status:true,data:postDet});
      }
      catch(err){

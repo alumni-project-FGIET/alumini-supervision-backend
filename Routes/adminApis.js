@@ -64,7 +64,7 @@ router.post(
             .json({ errors: [{ msg: "Invalid Credentials" }] });
         }
         const payload = {
-          user: {
+          admin: {
             email: email,
           },
         };
@@ -126,7 +126,7 @@ router.post(
     try {
       let admin = await Admin.findOne({ email: email });
       if (admin) {
-        return res.status(400).json({ errors: { msg: "User already exists" } });
+        return res.status(400).json({ errors: { msg: "admin already exists" } });
       }
       const salt = await bcrypt.genSalt(10);
       const passwordHased = await bcrypt.hash(password, salt);
@@ -141,7 +141,7 @@ router.post(
       });
       newAdmin.save();
       const payload = {
-        user: {
+        admin: {
           email: email,
         },
       };
@@ -215,5 +215,153 @@ router.delete("/:adminId", async (req, res) => {
     res.json({ message: err });
   }
 });
+
+
+router.post("/send-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const adminDet = await Admin.find({ email: email });
+
+    if (adminDet) {
+      var smtpTransport = await nodemailer.createTransport({
+        service: "Gmail",
+        auth: {
+          user: "singhnitesh9001@gmail.com",
+          pass: `${process.env.EMAIL_PASSWORD}`,
+        },
+      });
+      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+      ramdomNo = String(ramdomNo);
+      ramdomNo = ramdomNo.substring(0, 4);
+      console.log(ramdomNo, adminDet[0]._id);
+      var mailOptions = {
+        to: email,
+        from: "singhnitesh9001@gmail.com",
+        subject: "Verify Account",
+        html: "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>"+ ramdomNo + "</h1></div>"
+
+      };
+      let info = await smtpTransport.sendMail(mailOptions, function (err) {
+        console.log("err", err,adminDet);
+        if (!err) {
+         
+          res.json({ status: true, message: "Email Send to mail" });
+
+        } else {
+          res.json({ status: false, message: "Email not Send to mail" });
+        }
+        
+      });
+      const adminData = {
+        verifyToken: ramdomNo,
+      };
+      const changeadmin = await Admin.findByIdAndUpdate(
+        {
+          _id: adminDet[0]._id,
+        },
+        {
+          $set: {
+            verifyToken: ramdomNo
+          },
+        },
+        { upsert: true}
+      );
+    }
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+
+router.post('/verify',async (req,res)=>{
+  const { email,tokenValue } = req.body;
+  try {
+    const adminDet = await Admin.find({ email: email });
+    if(adminDet[0].verifyToken==tokenValue){
+      const changeadmin = await admin.findByIdAndUpdate(
+        {
+          _id: adminDet[0]._id,
+        },
+        {
+          $set: {
+            verified: true
+          },
+        },
+        { upsert: true}
+      );
+    res.json({status:true, message:"verified" });
+
+    }
+  }
+  catch(err){
+    res.json({status:false, message:"Not verified" });
+  }
+})
+
+
+router.post('/forgetPassword',async (req,res)=>{
+    try{
+   const tokenValue = await crypto.randomBytes(20, function(err, buf) {
+        var token = buf.toString('hex');
+        console.log(token,err)
+        Admin.findOne({ email: req.body.email }, function(err, admin) {
+              if (!admin) {       
+                console.log('wrong')
+                return  res.status(400).json({'errors':'No admin found'});
+              }
+              admin.resetPasswordToken = token;
+              admin.resetPasswordExpires = Date.now(); // 1 hour  
+              admin.save(function(err) {
+          res.json({status:true, data: 'reset Password is set Sucessfully' });
+               
+              });
+            });
+      });
+      console.log(tokenValue)
+   
+  }
+  catch(err){
+    res.json({status:false, message: err });
+  }
+})
+
+
+router.post('/reset' , async (req,res)=>{
+   
+   await Admin.findOne({ resetPasswordToken :req.body.resetPasswordToken }).then(admin => {    
+      if (admin.resetPasswordToken===null) {
+        console.error('password reset link is invalid or has expired');
+        res.status(403).json({status:true,data:'password reset link is invalid or has expired'});
+      } else if (admin != null) {
+        console.log('admin exists in db');
+        bcrypt.genSalt(10, (err, salt) => {
+          bcrypt.hash(req.body.password, salt, (err, hash) => {
+            if (err) throw err;
+            admin.password = hash;
+            admin
+              .save()
+              .then(admin => res.json(admin))
+              .catch(err => console.log(err));
+            admin
+            .updateOne({
+            password:hash,
+            resetPasswordToken:null,
+            resetPasswordExpires:null
+            })
+          .then(() => {
+            console.log(`password updated ${admin.password}`);
+            res.status(200).json({status:true, message: 'password updated' });
+          });
+        });
+      });
+      } 
+      else {
+        console.error('no admin exists in db to update');
+        res.status(401).json({status:false,data:'no admin exists in db to update'});
+      }
+  
+  })
+})
+
 
 module.exports = router;

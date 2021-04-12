@@ -13,9 +13,12 @@ const citySchema = new Schema({
       ref: 'states'
     }
 },
+
 {
   timestamps: true,
-});
+}
+);
+
 
 
 const City = mongoose.model("cities", citySchema);

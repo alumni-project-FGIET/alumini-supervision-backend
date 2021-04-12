@@ -9,7 +9,8 @@ const connection=require('./Config');
 const college=require('./Routes/collegeApis')
 const country = require('./Routes/loactionApis')
 const user = require('./Routes/userApis')
-const admin=require('./Routes/adminApis')
+const admin=require('./Routes/adminApis');
+const alumni = require('./Routes/alumniApis');
 require('dotenv').config()
 
 const port = process.env.PORT || 5000 ;
@@ -26,6 +27,7 @@ app.use('/college',college)
 app.use('/location',country)
 app.use('/user',user)
 app.use('/admin',admin)
+app.use('/alumni',alumni)
 
 server.listen(port,function(){
     console.log('listen to server .....',port);
