@@ -15,7 +15,7 @@ const crypto = require("crypto");
 router.get("/get", async (req, res) => {
   try {
     const userList = await User.find({ status: true })
-      .select("name email phoneNo status college createdAt")
+      .select("firstName lastName email phoneNo status college createdAt")
       .populate("college");
     res.json({ status: true, data: userList });
   } catch (err) {
@@ -28,7 +28,7 @@ router.get("/get/:userId", async (req, res) => {
   console.log(req.params.userId);
   try {
     const postDet = await User.find({ _id: req.params.userId, status: true })
-      .select("name email phoneNo status college createdAt")
+      .select("firstName lastName email phoneNo status college createdAt")
       .populate("college");
     res.json({ status: true, data: postDet });
   } catch (err) {
@@ -39,7 +39,7 @@ router.get("/get/:userId", async (req, res) => {
 router.get("/admin-get", async (req, res) => {
   try {
     const userList = await User.find()
-      .select("name email phoneNo status college createdAt")
+      .select("firstName lastName email phoneNo status college createdAt")
       .populate("college");
     res.json({ status: true, data: userList });
   } catch (err) {
@@ -52,7 +52,7 @@ router.get("/admin-get/:userId", async (req, res) => {
   console.log(req.params.userId);
   try {
     const postDet = await User.find({ _id: req.params.userId })
-      .select("name email phoneNo status college createdAt")
+      .select("firstName lastName email phoneNo status college createdAt")
       .populate("college");
     res.json({ status: true, data: postDet });
   } catch (err) {
@@ -114,7 +114,8 @@ router.post(
                 status: true,
                 data: {
                   _id: user._id,
-                  name: user.name,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
                   email: user.email,
                   phoneNo: user.phoneNo,
                   status: user.status,
@@ -171,7 +172,8 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const {
-      name,
+      firstName,
+      lasttName,
       rollNo,
       collegeId,
       status,
@@ -187,11 +189,12 @@ router.post(
       const salt = await bcrypt.genSalt(10);
       const passwordHased = await bcrypt.hash(password, salt);
       const newUser = new User({
-        name: name,
         email: email,
         phoneNo: phoneNo,
         status: status,
         rollNo: rollNo,
+        firstName: firstName,
+        lastName:lastName,
         verified:false,
         college: collegeId,
         password: passwordHased,
@@ -210,7 +213,8 @@ router.post(
           res.json({
             status: true,
             data: {
-              name: name,
+              firstName:firstName,
+              lastName:lastName,
               email: email,
               status: status,
               rollNo: rollNo,
