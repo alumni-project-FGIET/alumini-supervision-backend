@@ -251,6 +251,28 @@ router.patch("/:userId", async (req, res) => {
   }
 });
 
+//UPDATE THE College BY ID
+router.patch("/chnagePassword", async (req, res) => {
+  console.log(req.params.userId);
+  try {
+    const userData = req.body;
+    const changeuser = await User.findOneAndUpdate(
+      {
+        _id: req.params.userId,
+      },
+      {
+        $set: userData,
+      },
+      { upsert: true, returnNewDocument: true }
+    );
+    res.json({
+      status: true,
+    });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
 //DELETE THE College BY ID
 router.delete("/delete/:userId", async (req, res) => {
   console.log(req.params.userId);

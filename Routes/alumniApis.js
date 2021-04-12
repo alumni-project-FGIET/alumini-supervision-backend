@@ -292,6 +292,29 @@ router.patch("/:alumniId", async (req, res) => {
   }
 });
 
+
+//updatepasssword
+
+router.patch("/changePassword", async (req, res) => {
+  
+    try {
+      const alumniData = req.body;     
+      const changealumni = await Alumni.findOneAndUpdate(
+        {
+          email: req.body.email,
+        },
+        {
+          $set: alumniData,
+        },
+        { upsert: true, returnNewDocument: true }
+      );
+      res.json({
+        status: true,
+      });
+    } catch (err) {
+      res.json({ status:false,message: err });
+    }
+});
 //DELETE THE College BY ID
 router.delete("/delete/:alumniId", async (req, res) => {
   console.log(req.params.alumniId);
@@ -405,7 +428,7 @@ router.post("/forgetPassword", async (req, res) => {
   }
 });
 
-router.post("/reset", async (req, res) => {
+router.post("/resetPassword", async (req, res) => {
   await Alumni.findOne({
     resetPasswordToken: req.body.resetPasswordToken,
   }).then((alumni) => {

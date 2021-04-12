@@ -203,6 +203,39 @@ router.patch("/:adminId", async (req, res) => {
   }
 });
 
+
+router.patch("/chnagePassword", async (req, res) => {
+  console.log(req.params.adminId);
+  try {
+    const udpateData = req.body;
+    const changeAdmin = await Admin.findOneAndUpdate(
+      {
+        _id: req.params.adminId,
+      },
+      {
+        $set: udpateData,
+      },
+      { upsert: true }
+    );
+    res.json({
+      status: true,
+      // data: {
+      //   _id: changeAdmin._id,
+      //   name: changeAdmin.name,
+      //   email: changeAdmin.email,
+      //   admin: changeAdmin.admin,
+      //   status: changeAdmin.status,
+      //   phoneNo: changeAdmin.phoneNo,
+      //   title: changeAdmin.title,
+      //   createdAt: changeAdmin.createdAt,
+      //   updatedAt: changeAdmin.updatedAt,
+      // },
+    });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
 //DELETE THE College BY ID
 router.delete("/:adminId", async (req, res) => {
   console.log(req.params.adminId);
@@ -215,7 +248,6 @@ router.delete("/:adminId", async (req, res) => {
     res.json({ message: err });
   }
 });
-
 
 router.post("/send-email", async (req, res) => {
   const { email } = req.body;
@@ -271,7 +303,6 @@ router.post("/send-email", async (req, res) => {
     res.json({ message: err });
   }
 });
-
 
 router.post('/verify',async (req,res)=>{
   const { email,tokenValue } = req.body;

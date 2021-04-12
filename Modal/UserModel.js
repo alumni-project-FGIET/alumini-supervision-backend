@@ -15,9 +15,13 @@ const userSchema = Schema(
     verified:{
       type:Boolean
     },
-    name: {
+    firstName: {
       type: String,
       required: true,
+    },
+    lastName: {
+      type: String,
+   
     },
     college: {
       required: true,
