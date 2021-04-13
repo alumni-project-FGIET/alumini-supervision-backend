@@ -3,6 +3,13 @@ const Schema = mongoose.Schema;
 
 const alumnischema = Schema(
   {
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+    },
     email: {
       type: String,
       required: true,
@@ -15,13 +22,7 @@ const alumnischema = Schema(
     verified: {
       type: Boolean,
     },
-    firstName: {
-        type: String,
-        required: true,
-      },
-      lastName: {
-        type: String,
-      },
+   
     college: {
       required: true,
       type: Schema.Types.ObjectId,
