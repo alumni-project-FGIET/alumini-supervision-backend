@@ -15,7 +15,7 @@ const crypto = require("crypto");
 router.get("/get", async (req, res) => {
   try {
     const alumniList = await Alumni.find({ status: true })
-      .select("name email phoneNo status college job jobProvider createdAt")
+      .select("firstName lastName email phoneNo status college jobs jobProvider createdAt")
       .populate("college")
       .populate("jobLocation");
 
@@ -33,7 +33,7 @@ router.get("/get/:alumniId", async (req, res) => {
       _id: req.params.alumniId,
       status: true,
     })
-      .select("name email phoneNo status college job jobProvider createdAt")
+      .select("firstName lastName email phoneNo status college jobs jobProvider createdAt")
       .populate("college")
       .populate("jobLocation");
     res.json({ status: true, data: postDet });
@@ -45,7 +45,7 @@ router.get("/get/:alumniId", async (req, res) => {
 router.get("/admin-get", async (req, res) => {
   try {
     const alumniList = await Alumni.find()
-      .select("name email phoneNo status college job jobProvider createdAt")
+      .select("firstName lastName email phoneNo status college jobs jobProvider createdAt")
       .populate("college")
       .populate("jobLocation");
     res.json({ status: true, data: alumniList });
@@ -59,7 +59,7 @@ router.get("/admin-get/:alumniId", async (req, res) => {
   console.log(req.params.alumniId);
   try {
     const postDet = await Alumni.find({ _id: req.params.alumniId })
-      .select("name email phoneNo status college job jobProvider createdAt")
+      .select("firstName lastName email phoneNo status college jobs jobProvider createdAt")
       .populate("college")
       .populate("jobLocation");
     res.json({ status: true, data: postDet });
@@ -122,7 +122,8 @@ router.post(
                 status: true,
                 data: {
                   _id: alumni._id,
-                  name: alumni.name,
+                  firstName: alumni.firstName,
+                  lastName: alumni.lastName,
                   email: alumni.email,
                   phoneNo: alumni.phoneNo,
                   alumni: alumni.alumni,
@@ -182,7 +183,8 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const {
-      name,
+      firstName,
+      lastName,
       rollNo,
       collegeId,
       email,
@@ -221,7 +223,8 @@ router.post(
     //     jobLocation:jobLocation
     //   }
       const newAlumni = new Alumni({
-        name: name,
+        firstName: firstName,
+        lastName:lastName,
         email: email,
         phoneNo: phoneNo,
         alumni: true,
@@ -247,7 +250,8 @@ router.post(
           res.json({
             status: true,
             data: {
-              name: name,
+              firstName: firstName,
+             lastName:lastName,
               email: email,
               alumni: true,
               status: false,
@@ -292,29 +296,27 @@ router.patch("/:alumniId", async (req, res) => {
   }
 });
 
-
 //updatepasssword
-
-router.patch("/changePassword", async (req, res) => {
+// router.patch("/changePassword", async (req, res) => {
   
-    try {
-      const alumniData = req.body;     
-      const changealumni = await Alumni.findOneAndUpdate(
-        {
-          email: req.body.email,
-        },
-        {
-          $set: alumniData,
-        },
-        { upsert: true, returnNewDocument: true }
-      );
-      res.json({
-        status: true,
-      });
-    } catch (err) {
-      res.json({ status:false,message: err });
-    }
-});
+//     try {
+//       const alumniData = req.body;     
+//       const changealumni = await Alumni.findOneAndUpdate(
+//         {
+//           email: req.body.email,
+//         },
+//         {
+//           $set: alumniData,
+//         },
+//         { upsert: true, returnNewDocument: true }
+//       );
+//       res.json({
+//         status: true,
+//       });
+//     } catch (err) {
+//       res.json({ status:false,message: err });
+//     }
+// });
 //DELETE THE College BY ID
 router.delete("/delete/:alumniId", async (req, res) => {
   console.log(req.params.alumniId);
