@@ -206,7 +206,7 @@ router.post(
       if (alumni) {
         return res
           .status(400)
-          .json({ errors: { msg: "Alumni already exists" } });
+          .json({status:false, errors: { msg: "Alumni already exists" } });
     }
     const salt = await bcrypt.genSalt(10);
     const passwordHased = await bcrypt.hash(password, salt);
