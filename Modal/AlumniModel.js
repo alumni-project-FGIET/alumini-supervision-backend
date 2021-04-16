@@ -34,7 +34,6 @@ const alumnischema = Schema(
     },
     alumni: {
       type: Boolean,
-      required: true,
     },
     jobs: [
       {
@@ -65,7 +64,6 @@ const alumnischema = Schema(
     ],
     jobProvider: {
       type: String,
-      required: true,
     },
     verifyToken: {
       type: String,

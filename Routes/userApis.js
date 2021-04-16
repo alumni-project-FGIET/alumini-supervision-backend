@@ -181,11 +181,18 @@ router.post(
       password,
       phoneNo,
     } = req.body;
+    if( !firstName || !rollNo || !collegeId || !phoneNo || !password ){
+      return res
+      .status(400)
+      .json({status:false, errors: { msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty" } });
+  }
+  else{
     try {
       let user = await User.findOne({ email: email });
       if (user) {
         return res.status(400).json({ errors: { msg: "User already exists" } });
       }
+
       const salt = await bcrypt.genSalt(10);
       const passwordHased = await bcrypt.hash(password, salt);
       const newUser = new User({
@@ -230,6 +237,7 @@ router.post(
       console.log(req.body);
       res.json({ status: false, message: "User not added" });
     }
+  }
   }
 );
 

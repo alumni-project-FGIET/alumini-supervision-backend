@@ -122,6 +122,8 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+    else{
+
     const { name, email, password, phoneNo, title, status } = req.body;
     try {
       let admin = await Admin.findOne({ email: email });
@@ -166,6 +168,7 @@ router.post(
     } catch (err) {
       console.log(req.body);
       res.json({ status: false, message: "Admin not added" });
+    }
     }
   }
 );

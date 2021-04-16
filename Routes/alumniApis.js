@@ -191,37 +191,24 @@ router.post(
       password,
       phoneNo,
       jobs,
-      from,
-      to,
-      yearOfExperienc,
-      jobTitle,
-      jobCompany,
-      jobLocation,
       jobProvider,
     } = req.body;
-    if(jobs.isLength <0 ){
+    
+    if(jobs.isLength < 0 || !firstName || !rollNo || !collegeId || !phoneNo ){
         return res
         .status(400)
-        .json({status:false, errors: { msg: "job array  should not be empty" } });
+        .json({status:false, errors: { msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty" } });
     }
-
-    try {
+    else{
+      try {
       let alumni = await Alumni.findOne({ email: email });
       if (alumni) {
         return res
           .status(400)
           .json({ errors: { msg: "Alumni already exists" } });
-      }
-      const salt = await bcrypt.genSalt(10);
-      const passwordHased = await bcrypt.hash(password, salt);
-    //   const job={
-    //     from:from,
-    //     to:to,
-    //     yearOfExperienc:yearOfExperienc,
-    //     jobTitle:tobTitle,
-    //     jobCompany:jobCompany,
-    //     jobLocation:jobLocation
-    //   }
+    }
+    const salt = await bcrypt.genSalt(10);
+    const passwordHased = await bcrypt.hash(password, salt);
       const newAlumni = new Alumni({
         firstName: firstName,
         lastName:lastName,
@@ -243,7 +230,6 @@ router.post(
           email: email,
         },
       };
-
       jwt.sign(payload, process.env.JWT, function (err, token) {
         console.log(err, token);
         if (token) {
@@ -271,6 +257,7 @@ router.post(
       console.log(req.body);
       res.json({ status: false, message: "Alumni not added" });
     }
+  }
   }
 );
 
