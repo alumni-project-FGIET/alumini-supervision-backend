@@ -181,7 +181,7 @@ router.post(
       password,
       phoneNo,
     } = req.body;
-    if( !firstName || !rollNo || !collegeId || !phoneNo || !password ){
+    if( !firstName || !rollNo || !collegeId || !phoneNo || !password || !email){
       return res
       .status(400)
       .json({status:false, errors: { msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty" } });
@@ -235,7 +235,7 @@ router.post(
       //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
     } catch (err) {
       console.log(req.body);
-      res.json({ status: false, message: "User not added" });
+      res.json({ status: false, message: "User not added" ,error:err});
     }
   }
   }

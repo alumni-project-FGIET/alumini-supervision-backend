@@ -179,9 +179,6 @@ router.post(
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
     const {
       firstName,
       lastName,
@@ -194,10 +191,14 @@ router.post(
       jobProvider,
     } = req.body;
     
-    if(jobs.isLength < 0 || !firstName || !rollNo || !collegeId || !phoneNo ){
+    if (!errors.isEmpty()) {
+      return res.status(400).json({status:false, errors: errors.array() });
+    }
+    else{
+    if(jobs.isLength < 0 || !firstName || !rollNo || !collegeId || !phoneNo  || !email || !password ){
         return res
         .status(400)
-        .json({status:false, errors: { msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty" } });
+        .json({status:false, errors: { msg: "jobs , firstName ,rollNo ,email,collegeId phoneNo ,password any of should not be empty" } });
     }
     else{
       try {
@@ -223,9 +224,9 @@ router.post(
         college: collegeId,
         password: passwordHased,
       });
-      newAlumni.save();
-
-      const payload = {
+      const response= await newAlumni.save();
+      if(response){
+        const payload = {
         alumni: {
           email: email,
         },
@@ -236,7 +237,7 @@ router.post(
           res.json({
             status: true,
             data: {
-              firstName: firstName,
+             firstName: firstName,
              lastName:lastName,
               email: email,
               alumni: true,
@@ -252,12 +253,16 @@ router.post(
           });
         }
       });
-      //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
+    }
+    else{
+       req.send({status:false, err:'error'})
+    }
     } catch (err) {
       console.log(req.body);
-      res.json({ status: false, message: "Alumni not added" });
+      res.json({ status: false, message: "Alumni not added ",error:err });
     }
   }
+}
   }
 );
 

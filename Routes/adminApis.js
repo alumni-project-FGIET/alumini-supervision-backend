@@ -167,7 +167,7 @@ router.post(
       });
     } catch (err) {
       console.log(req.body);
-      res.json({ status: false, message: "Admin not added" });
+      res.json({ status: false, message: "Admin not added",error:err });
     }
     }
   }
