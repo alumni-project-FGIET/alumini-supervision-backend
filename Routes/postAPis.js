@@ -5,6 +5,8 @@ const multer = require("multer");
 const path = require("path");
 const City = require("../Modal/Location/CityModel");
 const adminAuth = require("../Middleware/adminAuth");
+const alumniAuth = require("../Middleware/alumniAuth");
+const Post = require("../Modal/PostModel");
 //GET ALL College LIST
 
 router.get("/get", async (req, res) => {
@@ -43,37 +45,28 @@ router.post("/search", async (req, res) => {
 });
 
 //ADD COLLEGE
-router.post("/add", adminAuth, async (req, res) => {
+router.post("/add", alumniAuth, async (req, res) => {
   try {
-    if (req.body.cityId) {
-      const newCollege = await new College({
-        name: req.body.name,
-        collegeCode: req.body.collegeCode,
-        city: req.body.cityId,
-        status: req.body.status,
-      });
-      newCollege
-        .save()
-        .then((data) => {
-          res.json({
-            status: true,
-            data: newCollege,
-          });
-        })
-        .catch((err) => {
-          console.log(err.code);
-          if (err.code === 11000) {
-            res.json({
-              status: false,
-              message: "Validation error `name` should be unique",
-            });
-          } else {
-            res.json({ status: false, message: "Data not added", error: err });
-          }
+    const newPost = await new Post({});
+    newCollege
+      .save()
+      .then((data) => {
+        res.json({
+          status: true,
+          data: newCollege,
         });
-    } else {
-      res.json({ status: false, message: "cityId should not be null" });
-    }
+      })
+      .catch((err) => {
+        console.log(err.code);
+        if (err.code === 11000) {
+          res.json({
+            status: false,
+            message: "Validation error `name` should be unique",
+          });
+        } else {
+          res.json({ status: false, message: "Data not added", error: err });
+        }
+      });
   } catch (err) {
     console.log(req.body);
     res.json({ status: false, message: "College not added " });

@@ -10,12 +10,16 @@ const bcrypt = require("bcryptjs");
 const User = require("../Modal/UserModel");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const auth = require("../Middleware/auth");
+const adminAuth = require("../Middleware/adminAuth");
 
 //GET ALL College LIST
-router.get("/get", async (req, res) => {
+router.get("/get", auth, async (req, res) => {
   try {
     const userList = await User.find({ status: true })
-      .select("firstName lastName email phoneNo status college createdAt")
+      .select(
+        "firstName lastName email  MediaUrl phoneNo status college createdAt"
+      )
       .populate("college");
     res.json({ status: true, data: userList });
   } catch (err) {
@@ -24,11 +28,13 @@ router.get("/get", async (req, res) => {
 });
 
 //GET ONE College BY ID
-router.get("/get/:userId", async (req, res) => {
+router.get("/get/:userId", auth, async (req, res) => {
   console.log(req.params.userId);
   try {
     const postDet = await User.find({ _id: req.params.userId, status: true })
-      .select("firstName lastName email phoneNo status college createdAt")
+      .select(
+        "firstName lastName email  MediaUrl phoneNo status college createdAt"
+      )
       .populate("college");
     res.json({ status: true, data: postDet });
   } catch (err) {
@@ -36,10 +42,12 @@ router.get("/get/:userId", async (req, res) => {
   }
 });
 
-router.get("/admin-get", async (req, res) => {
+router.get("/admin-get", adminAuth, async (req, res) => {
   try {
     const userList = await User.find()
-      .select("firstName lastName email phoneNo status college createdAt")
+      .select(
+        "firstName lastName email MediaUrl phoneNo status college createdAt"
+      )
       .populate("college");
     res.json({ status: true, data: userList });
   } catch (err) {
@@ -48,11 +56,13 @@ router.get("/admin-get", async (req, res) => {
 });
 
 //GET ONE College BY ID
-router.get("/admin-get/:userId", async (req, res) => {
+router.get("/admin-get/:userId", adminAuth, async (req, res) => {
   console.log(req.params.userId);
   try {
     const postDet = await User.find({ _id: req.params.userId })
-      .select("firstName lastName email phoneNo status college createdAt")
+      .select(
+        "firstName lastName email MediaUrl phoneNo status college createdAt"
+      )
       .populate("college");
     res.json({ status: true, data: postDet });
   } catch (err) {
@@ -143,16 +153,20 @@ router.post(
   }
 );
 
-const storage = multer.diskStorage({
-  destination: "./uploads/",
-  filename: function (req, file, cb) {
-    cb(null, "files-" + Date.now() + path.extname(file.originalname));
-  },
-});
+/// TODO USE AWS S3 FOR STORING images/files
 
-const upload = multer({
-  storage: storage,
-}).single("file");
+// const storage = multer.diskStorage({
+//   destination: "./uploads/",
+//   filename: function (req, file, cb) {
+//     cb(null, "files-" + Date.now() + path.extname(file.originalname));
+//   },
+// });
+
+// const upload = multer({
+//   storage: storage,
+// }).single("file");
+
+/// TODO USE AWS S3 FOR STORING images/files
 
 //ADD User
 router.post(
@@ -181,68 +195,80 @@ router.post(
       password,
       phoneNo,
     } = req.body;
-    if( !firstName || !rollNo || !collegeId || !phoneNo || !password || !email){
-      return res
-      .status(400)
-      .json({status:false, errors: { msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty" } });
-  }
-  else{
-    try {
-      let user = await User.findOne({ email: email });
-      if (user) {
-        return res.status(400).json({ errors: { msg: "User already exists" } });
-      }
-
-      const salt = await bcrypt.genSalt(10);
-      const passwordHased = await bcrypt.hash(password, salt);
-      const newUser = new User({
-        email: email,
-        phoneNo: phoneNo,
-        status: status,
-        rollNo: rollNo,
-        firstName: firstName,
-        lastName:lastName,
-        verified:false,
-        college: collegeId,
-        password: passwordHased,
-      });
-      newUser.save();
-
-      const payload = {
-        user: {
-          email: email,
+    if (
+      !firstName ||
+      !rollNo ||
+      !collegeId ||
+      !phoneNo ||
+      !password ||
+      !email
+    ) {
+      return res.status(400).json({
+        status: false,
+        errors: {
+          msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty",
         },
-      };
-
-      jwt.sign(payload, process.env.JWT, function (err, token) {
-        console.log(err, token);
-        if (token) {
-          res.json({
-            status: true,
-            data: {
-              firstName:firstName,
-              lastName:lastName,
-              email: email,
-              status: status,
-              rollNo: rollNo,
-              phoneNo: phoneNo,
-              college: collegeId,
-              token: token,
-            },
-          });
-        }
       });
-      //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
-    } catch (err) {
-      console.log(req.body);
-      res.json({ status: false, message: "User not added" ,error:err});
+    } else {
+      try {
+        let user = await User.findOne({ email: email });
+        if (user) {
+          return res
+            .status(400)
+            .json({ errors: { msg: "User already exists" } });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const passwordHased = await bcrypt.hash(password, salt);
+        const newUser = new User({
+          email: email,
+          phoneNo: phoneNo,
+          status: status,
+          rollNo: rollNo,
+          firstName: firstName,
+          lastName: lastName,
+          MediaUrl: null,
+          verified: false,
+          college: collegeId,
+          password: passwordHased,
+        });
+        newUser.save();
+
+        const payload = {
+          user: {
+            email: email,
+          },
+        };
+
+        jwt.sign(payload, process.env.JWT, function (err, token) {
+          console.log(err, token);
+          if (token) {
+            res.json({
+              status: true,
+              data: {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                status: status,
+                rollNo: rollNo,
+                phoneNo: phoneNo,
+                college: collegeId,
+                token: token,
+              },
+            });
+          }
+        });
+        //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
+      } catch (err) {
+        console.log(req.body);
+        res.json({ status: false, message: "User not added", error: err });
+      }
     }
-  }
   }
 );
 
 //UPDATE THE College BY ID
-router.patch("/:userId", async (req, res) => {
+router.patch("/:userId", auth, async (req, res) => {
   console.log(req.params.userId);
   try {
     const userData = req.body;
@@ -264,29 +290,41 @@ router.patch("/:userId", async (req, res) => {
 });
 
 //UPDATE THE College BY ID
-router.patch("/chnagePassword", async (req, res) => {
-  console.log(req.params.userId);
+router.patch("/updatePassword/:userId", auth, async (req, res) => {
+  const { password } = req.body;
+
   try {
-    const userData = req.body;
-    const changeuser = await User.findOneAndUpdate(
-      {
-        _id: req.params.userId,
-      },
-      {
-        $set: userData,
-      },
-      { upsert: true, returnNewDocument: true }
-    );
-    res.json({
-      status: true,
-    });
+    if (password.length < 5) {
+      res.json({
+        status: false,
+        message:
+          "id and password and password must be greater then 6 data required",
+      });
+    } else {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHased = await bcrypt.hash(password, salt);
+      await User.findByIdAndUpdate(
+        {
+          _id: req.params.alumniId,
+        },
+        {
+          $set: {
+            password: passwordHased,
+          },
+        },
+        { upsert: true, returnNewDocument: true }
+      );
+      res.json({
+        status: true,
+      });
+    }
   } catch (err) {
-    res.json({ message: err });
+    res.json({ status: false, message: err });
   }
 });
 
 //DELETE THE College BY ID
-router.delete("/delete/:userId", async (req, res) => {
+router.delete("/delete/:userId", auth, async (req, res) => {
   console.log(req.params.userId);
   try {
     const removePost = await User.remove({
@@ -319,19 +357,18 @@ router.post("/send-email", async (req, res) => {
         to: email,
         from: "singhnitesh9001@gmail.com",
         subject: "Verify Account",
-        html: "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>"+ ramdomNo + "</h1></div>"
-
+        html:
+          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+          ramdomNo +
+          "</h1></div>",
       };
       let info = await smtpTransport.sendMail(mailOptions, function (err) {
-        console.log("err", err,userDet);
+        console.log("err", err, userDet);
         if (!err) {
-         
           res.json({ status: true, message: "Email Send to mail" });
-
         } else {
           res.json({ status: false, message: "Email not Send to mail" });
         }
-        
       });
       const userData = {
         verifyToken: ramdomNo,
@@ -342,10 +379,10 @@ router.post("/send-email", async (req, res) => {
         },
         {
           $set: {
-            verifyToken: ramdomNo
+            verifyToken: ramdomNo,
           },
         },
-        { upsert: true}
+        { upsert: true }
       );
     }
   } catch (err) {
@@ -353,96 +390,93 @@ router.post("/send-email", async (req, res) => {
   }
 });
 
-
-router.post('/verify',async (req,res)=>{
-  const { email,tokenValue } = req.body;
+router.post("/verify", async (req, res) => {
+  const { email, tokenValue } = req.body;
   try {
     const userDet = await User.find({ email: email });
-    if(userDet[0].verifyToken==tokenValue){
+    if (userDet[0].verifyToken == tokenValue) {
       const changeuser = await User.findByIdAndUpdate(
         {
           _id: userDet[0]._id,
         },
         {
           $set: {
-            verified: true
+            verified: true,
           },
         },
-        { upsert: true}
+        { upsert: true }
       );
-    res.json({status:true, message:"verified" });
-
+      res.json({ status: true, message: "verified" });
     }
+  } catch (err) {
+    res.json({ status: false, message: "Not verified" });
   }
-  catch(err){
-    res.json({status:false, message:"Not verified" });
-  }
-})
+});
 
-
-router.post('/forgetPassword',async (req,res)=>{
-    try{
-   const tokenValue = await crypto.randomBytes(20, function(err, buf) {
-        var token = buf.toString('hex');
-        console.log(token,err)
-        User.findOne({ email: req.body.email }, function(err, user) {
-              if (!user) {       
-                console.log('wrong')
-                return  res.status(400).json({'errors':'No user found'});
-              }
-              user.resetPasswordToken = token;
-              user.resetPasswordExpires = Date.now(); // 1 hour  
-              user.save(function(err) {
-          res.json({status:true, data: 'reset Password is set Sucessfully' });
-               
-              });
-            });
+router.post("/forgetPassword", async (req, res) => {
+  try {
+    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+      var token = buf.toString("hex");
+      console.log(token, err);
+      User.findOne({ email: req.body.email }, function (err, user) {
+        if (!user) {
+          console.log("wrong");
+          return res.status(400).json({ errors: "No user found" });
+        }
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now(); // 1 hour
+        user.save(function (err) {
+          res.json({ status: true, data: "reset Password is set Sucessfully" });
+        });
       });
-      console.log(tokenValue)
-   
+    });
+    console.log(tokenValue);
+  } catch (err) {
+    res.json({ status: false, message: err });
   }
-  catch(err){
-    res.json({status:false, message: err });
-  }
-})
+});
 
-
-router.post('/reset' , async (req,res)=>{
-   
-   await User.findOne({ resetPasswordToken :req.body.resetPasswordToken }).then(user => {    
-      if (user.resetPasswordToken===null) {
-        console.error('password reset link is invalid or has expired');
-        res.status(403).json({status:true,data:'password reset link is invalid or has expired'});
+router.post("/reset", async (req, res) => {
+  await User.findOne({ resetPasswordToken: req.body.resetPasswordToken }).then(
+    (user) => {
+      if (user.resetPasswordToken === null) {
+        console.error("password reset link is invalid or has expired");
+        res.status(403).json({
+          status: true,
+          data: "password reset link is invalid or has expired",
+        });
       } else if (user != null) {
-        console.log('user exists in db');
+        console.log("user exists in db");
         bcrypt.genSalt(10, (err, salt) => {
           bcrypt.hash(req.body.password, salt, (err, hash) => {
             if (err) throw err;
             user.password = hash;
             user
               .save()
-              .then(user => res.json(user))
-              .catch(err => console.log(err));
+              .then((user) => res.json(user))
+              .catch((err) => console.log(err));
             user
-            .updateOne({
-            password:hash,
-            resetPasswordToken:null,
-            resetPasswordExpires:null
-            })
-          .then(() => {
-            console.log(`password updated ${user.password}`);
-            res.status(200).json({status:true, message: 'password updated' });
+              .updateOne({
+                password: hash,
+                resetPasswordToken: null,
+                resetPasswordExpires: null,
+              })
+              .then(() => {
+                console.log(`password updated ${user.password}`);
+                res
+                  .status(200)
+                  .json({ status: true, message: "password updated" });
+              });
           });
         });
-      });
-      } 
-      else {
-        console.error('no user exists in db to update');
-        res.status(401).json({status:false,data:'no user exists in db to update'});
+      } else {
+        console.error("no user exists in db to update");
+        res
+          .status(401)
+          .json({ status: false, data: "no user exists in db to update" });
       }
-  
-  })
-})
-
+    }
+  );
+});
 
 module.exports = router;

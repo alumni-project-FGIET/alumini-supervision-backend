@@ -15,6 +15,9 @@ const alumnischema = Schema(
       required: true,
       unique: true,
     },
+    MediaUrl: {
+      type: String,
+    },
     phoneNo: {
       type: String,
       required: true,
@@ -22,7 +25,7 @@ const alumnischema = Schema(
     verified: {
       type: Boolean,
     },
-   
+
     college: {
       required: true,
       type: Schema.Types.ObjectId,
@@ -37,7 +40,6 @@ const alumnischema = Schema(
     },
     jobs: [
       {
-       
         from: {
           type: Date,
           required: true,

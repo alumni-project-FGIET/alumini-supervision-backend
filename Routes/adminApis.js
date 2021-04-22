@@ -9,10 +9,12 @@ const bcrypt = require("bcryptjs");
 const config = require("config");
 const { check, validationResult } = require("express-validator");
 var dotenv = require("dotenv");
+const adminAuth = require("../Middleware/adminAuth");
 require("dotenv").config();
 
+
 //GET ALL College LIST
-router.get("/get", async (req, res) => {
+router.get("/get", adminAuth, async (req, res) => {
   try {
     const adminList = await Admin.find().select(
       "name email admin phoneNo title createdAt updatedAt"
@@ -24,7 +26,7 @@ router.get("/get", async (req, res) => {
 });
 
 //GET ONE College BY ID
-router.get("/get/:adminId", async (req, res) => {
+router.get("/get/:adminId", adminAuth, async (req, res) => {
   console.log(req.params.adminId);
   try {
     const adminDet = await Admin.findById(req.params.adminId).select(
@@ -64,7 +66,7 @@ router.post(
             .json({ errors: [{ msg: "Invalid Credentials" }] });
         }
         const payload = {
-          admin: {
+          user: {
             email: email,
           },
         };
@@ -143,7 +145,7 @@ router.post(
       });
       newAdmin.save();
       const payload = {
-        admin: {
+        user: {
           email: email,
         },
       };
@@ -173,8 +175,9 @@ router.post(
   }
 );
 
+
 //UPDATE THE College BY ID
-router.patch("/:adminId", async (req, res) => {
+router.patch("/:adminId",adminAuth, async (req, res) => {
   console.log(req.params.adminId);
   try {
     const udpateData = req.body;
@@ -207,40 +210,42 @@ router.patch("/:adminId", async (req, res) => {
 });
 
 
-router.patch("/chnagePassword", async (req, res) => {
-  console.log(req.params.adminId);
-  try {
-    const udpateData = req.body;
-    const changeAdmin = await Admin.findOneAndUpdate(
-      {
-        _id: req.params.adminId,
-      },
-      {
-        $set: udpateData,
-      },
-      { upsert: true }
-    );
-    res.json({
-      status: true,
-      // data: {
-      //   _id: changeAdmin._id,
-      //   name: changeAdmin.name,
-      //   email: changeAdmin.email,
-      //   admin: changeAdmin.admin,
-      //   status: changeAdmin.status,
-      //   phoneNo: changeAdmin.phoneNo,
-      //   title: changeAdmin.title,
-      //   createdAt: changeAdmin.createdAt,
-      //   updatedAt: changeAdmin.updatedAt,
-      // },
-    });
-  } catch (err) {
-    res.json({ message: err });
-  }
+router.patch("/updatePassword/:adminId",adminAuth, async (req, res) => {
+
+  const {password} = req.body;
+    
+    try {
+      if(password.length < 5 ){
+        res.json({
+          status: false,
+          message:'id and password and password must be greater then 6 data required'
+        });
+      }
+      else{
+        const salt = await bcrypt.genSalt(10);
+        const passwordHased = await bcrypt.hash(password, salt);
+        await Admin.findByIdAndUpdate(
+        {
+          _id: req.params.adminId,
+        },
+        {
+          $set: {
+            password:passwordHased
+          },
+        },
+        { upsert: true, returnNewDocument: true }
+         );
+          res.json({
+            status: true,
+          });
+      }
+    } catch (err) {
+      res.json({ status:false,message: err });
+    }
 });
 
 //DELETE THE College BY ID
-router.delete("/:adminId", async (req, res) => {
+router.delete("/:adminId",adminAuth, async (req, res) => {
   console.log(req.params.adminId);
   try {
     const removePost = await Admin.remove({

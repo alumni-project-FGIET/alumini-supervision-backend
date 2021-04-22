@@ -5,6 +5,7 @@ const path = require('path');
 const Country = require('../Modal/Location/CountryModel');
 const State = require('../Modal/Location/StateModel');
 const City = require('../Modal/Location/CityModel');
+const adminAuth = require('../Middleware/adminAuth');
  
 
 ////////////COUNTRYIES//////////////
@@ -33,7 +34,7 @@ router.get('/country/:countryId',async (req,res)=>{
        }
 });
 
-router.post("/country/add", (req,res) => {
+router.post("/country/add", adminAuth, (req,res) => {
         const newCountry = new Country({
           sortname: req.body.sortname,
           name: req.body.name
@@ -62,7 +63,7 @@ router.post("/country/add", (req,res) => {
 //ADD 
 
 //DELETE THE  BY ID
-router.delete('/country/delete/:countryId',async (req,res)=>{
+router.delete('/country/delete/:countryId', adminAuth,async (req,res)=>{
     console.log(req.params.countryId)
     try{
         const removePost = await Country.remove({
@@ -75,7 +76,7 @@ router.delete('/country/delete/:countryId',async (req,res)=>{
        }
 });
 
-router.patch("/country/update/:countryId", async (req, res) => {
+router.patch("/country/update/:countryId",adminAuth, async (req, res) => {
   console.log(req.params.countryId);
   try {
     const udpateData = req.body
@@ -118,7 +119,7 @@ router.get('/state/:stateId',async (req,res)=>{
        }
 });
 
-router.post('/state/add', async (req,res) => {
+router.post('/state/add',adminAuth, async (req,res) => {
     try{
      if(req.body.countryId){
       const newstate = new State({
@@ -161,7 +162,7 @@ router.post('/state/add', async (req,res) => {
 //ADD 
 
 //DELETE THE  BY ID
-router.delete('/state/delete/:stateId',async (req,res)=>{
+router.delete('/state/delete/:stateId',adminAuth,async (req,res)=>{
     console.log(req.params.stateId)
     try{
         const removePost = await State.remove({
@@ -174,7 +175,7 @@ router.delete('/state/delete/:stateId',async (req,res)=>{
        }
 });
 
-router.patch("/state/update/:stateId", async (req, res) => {
+router.patch("/state/update/:stateId",adminAuth, async (req, res) => {
   console.log(req.params.stateId);
   try {
     const udpateData = req.body
@@ -235,7 +236,7 @@ router.get('/city/:cityId',async (req,res)=>{
      }
 });
 
-router.post('/city/add', async (req,res) => {
+router.post('/city/add', adminAuth,async (req,res) => {
   try{
     if(req.body.stateId){
       const newCity = new City({
@@ -278,7 +279,7 @@ router.post('/city/add', async (req,res) => {
 //ADD 
 
 //DELETE THE  BY ID
-router.delete('/city/delete/:cityId',async (req,res)=>{
+router.delete('/city/delete/:cityId', adminAuth,async (req,res)=>{
   console.log(req.params.cityId)
   try{
       const removePost = await City.remove({
@@ -291,7 +292,7 @@ router.delete('/city/delete/:cityId',async (req,res)=>{
      }
 });
 
-router.patch("city/update/:cityId", async (req, res) => {
+router.patch("city/update/:cityId",adminAuth, async (req, res) => {
   console.log(req.params.cityId);
   try {
     const udpateData = req.body
