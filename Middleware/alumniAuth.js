@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../Modal/AdminModel");
-const Alumni = require("../Modal/AlumniModel");
+const AlumniModel = require("../Modal/AlumniModel");
 
 module.exports = async (req, res, next) => {
   //    get token from header
@@ -19,16 +19,15 @@ module.exports = async (req, res, next) => {
       const decoded = jwt.verify(bearerHeader, process.env.JWT);
       userEmail = decoded.user.email;
       console.log(decoded);
-      const adminData = await Admin.findOne({ email: userEmail });
-      if (adminData) {
+      const alumniData = await AlumniModel.findOne({ email: userEmail });
+      if (alumniData) {
         next();
         console.log("done");
       } else {
-        const alumniData = await Alumni.findOne({ email: userEmail });
-        if (alumniData) {
+        const adminData = await Admin.findOne({ email: userEmail });
+        if (adminData) {
           next();
-        } else {
-          res.status(401).json({ status: false, msg: "Token is not valid" });
+          console.log("done");
         }
       }
     } catch (e) {
