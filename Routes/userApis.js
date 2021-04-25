@@ -1,9 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const College = require("../Modal/collegeModels");
-const multer = require("multer");
-const path = require("path");
-const City = require("../Modal/Location/CityModel");
 const { check, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -13,7 +9,7 @@ const crypto = require("crypto");
 const auth = require("../Middleware/auth");
 const adminAuth = require("../Middleware/adminAuth");
 
-//GET ALL College LIST
+//GET ALL LIST
 router.get("/get", auth, async (req, res) => {
   try {
     const userList = await User.find({ status: true })
@@ -27,7 +23,7 @@ router.get("/get", auth, async (req, res) => {
   }
 });
 
-//GET ONE College BY ID
+//GET ONE BY ID
 router.get("/get/:userId", auth, async (req, res) => {
   console.log(req.params.userId);
   try {
@@ -55,7 +51,7 @@ router.get("/admin-get", adminAuth, async (req, res) => {
   }
 });
 
-//GET ONE College BY ID
+//GET ONE BY ID
 router.get("/admin-get/:userId", adminAuth, async (req, res) => {
   console.log(req.params.userId);
   try {
@@ -70,7 +66,7 @@ router.get("/admin-get/:userId", adminAuth, async (req, res) => {
   }
 });
 
-// GET College BY SEARCH
+// GET BY SEARCH
 router.post("/search", async (req, res) => {
   try {
     var regex = new RegExp(req.body.name, "i");
@@ -110,6 +106,8 @@ router.post(
         const payload = {
           user: {
             email: user.email,
+            id: user._id,
+            alumni: false,
           },
         };
         jwt.sign(
@@ -153,28 +151,12 @@ router.post(
   }
 );
 
-/// TODO USE AWS S3 FOR STORING images/files
-
-// const storage = multer.diskStorage({
-//   destination: "./uploads/",
-//   filename: function (req, file, cb) {
-//     cb(null, "files-" + Date.now() + path.extname(file.originalname));
-//   },
-// });
-
-// const upload = multer({
-//   storage: storage,
-// }).single("file");
-
-/// TODO USE AWS S3 FOR STORING images/files
-
 //ADD User
 router.post(
   "/register",
   [
     check("firstName", "Name is required").not().isEmpty(),
     check("email", "Please enter valid email").isEmail(),
-    check("collegeId", "Please Select valid College").exists(),
     check(
       "password",
       "Please enter a password with 6 or more characters"
@@ -233,10 +215,14 @@ router.post(
           password: passwordHased,
         });
         newUser.save();
-
+        const userOne = await User.findOne({ email: email });
+        if (!userOne)
+          return res.json({ status: false, data: "User is not regsitered" });
         const payload = {
           user: {
             email: email,
+            id: userOne._id,
+            alumni: false,
           },
         };
 
@@ -267,7 +253,7 @@ router.post(
   }
 );
 
-//UPDATE THE College BY ID
+//UPDATE THE BY ID
 router.patch("/:userId", auth, async (req, res) => {
   console.log(req.params.userId);
   try {
@@ -289,10 +275,9 @@ router.patch("/:userId", auth, async (req, res) => {
   }
 });
 
-//UPDATE THE College BY ID
+//UPDATE THE BY ID
 router.patch("/updatePassword/:userId", auth, async (req, res) => {
   const { password } = req.body;
-
   try {
     if (password.length < 5) {
       res.json({
@@ -323,7 +308,30 @@ router.patch("/updatePassword/:userId", auth, async (req, res) => {
   }
 });
 
-//DELETE THE College BY ID
+router.patch("/media/:userId", auth, async (req, res) => {
+  console.log(req.params.userId);
+  try {
+    const { MediaUrl } = req.body;
+    const changeUser = await User.findOneAndUpdate(
+      {
+        _id: req.params.userId,
+      },
+      {
+        $set: {
+          MediaUrl: MediaUrl,
+        },
+      },
+      { upsert: true, returnNewDocument: true }
+    );
+    res.json({
+      status: true,
+    });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
+//DELETE THE  BY ID
 router.delete("/delete/:userId", auth, async (req, res) => {
   console.log(req.params.userId);
   try {

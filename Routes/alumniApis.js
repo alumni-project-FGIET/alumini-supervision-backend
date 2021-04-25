@@ -106,18 +106,22 @@ router.post(
       if (!alumni) {
         return res
           .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
+          .json({ errors: [{ msg: "Invalid Credentials, Email not found" }] });
       }
       if (alumni.status === true) {
         const isMatch = await bcrypt.compare(password, alumni.password);
+        console.log(alumni, isMatch);
         if (!isMatch) {
           return res
             .status(400)
             .json({ errors: [{ msg: "Invalid Credentials" }] });
         }
+        console.log(alumni);
         const payload = {
           user: {
             email: alumni.email,
+            id: alumni._id,
+            alumni: true,
           },
         };
         jwt.sign(
@@ -137,6 +141,7 @@ router.post(
                   email: alumni.email,
                   phoneNo: alumni.phoneNo,
                   alumni: alumni.alumni,
+                  MediaUrl: alumni.MediaUrl,
                   status: alumni.status,
                   job: alumni.job,
                   jobProvider: alumni.jobProvider,
@@ -272,9 +277,17 @@ router.post(
                 }
               }
             );
+            const alumniOne = await Alumni.findOne({ email: email });
+            if (!alumniOne)
+              return res.json({
+                status: false,
+                data: "Alumni is not registered",
+              });
             const payload = {
               user: {
                 email: email,
+                id: alumniOne._id,
+                alumni: true,
               },
             };
             jwt.sign(payload, process.env.JWT, function (err, token) {
@@ -311,7 +324,7 @@ router.post(
   }
 );
 
-//UPDATE THE College BY ID
+//UPDATE THE Alumni BY ID
 router.patch("/:alumniId", auth, async (req, res) => {
   console.log(req.params.alumniId);
   try {
@@ -322,6 +335,30 @@ router.patch("/:alumniId", auth, async (req, res) => {
       },
       {
         $set: alumniData,
+      },
+      { upsert: true, returnNewDocument: true }
+    );
+    res.json({
+      status: true,
+    });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
+//UPDATE THE Alumni BY ID
+router.patch("/media/:alumniId", auth, async (req, res) => {
+  console.log(req.params.alumniId);
+  try {
+    const { MediaUrl } = req.body;
+    const changeAlumni = await Alumni.findOneAndUpdate(
+      {
+        _id: req.params.alumniId,
+      },
+      {
+        $set: {
+          MediaUrl: MediaUrl,
+        },
       },
       { upsert: true, returnNewDocument: true }
     );

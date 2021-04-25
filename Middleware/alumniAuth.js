@@ -13,21 +13,19 @@ module.exports = async (req, res, next) => {
   //    verify token
   else {
     try {
-      // const bearer= bearerHeader.split(' ');
-      //         const bearerToken = bearer[1];
       console.log(bearerHeader);
       const decoded = jwt.verify(bearerHeader, process.env.JWT);
       userEmail = decoded.user.email;
-      console.log(decoded);
+      req.user = decoded;
+
       const alumniData = await AlumniModel.findOne({ email: userEmail });
+
       if (alumniData) {
         next();
-        console.log("done");
       } else {
         const adminData = await Admin.findOne({ email: userEmail });
         if (adminData) {
           next();
-          console.log("done");
         }
       }
     } catch (e) {

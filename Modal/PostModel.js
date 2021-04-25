@@ -3,81 +3,32 @@ const Schema = mongoose.Schema;
 
 const postSchema = Schema(
   {
-    user: {
-      type: Schema.Types.ObjectID,
-      ref: "users",
+    alumni: {
+      type: Schema.Types.ObjectId,
+      ref: "alumnis",
     },
     title: {
       type: String,
     },
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "likes",
+      },
+    ],
     discription: {
       type: String,
     },
     status: {
       type: Boolean,
     },
-    mediUrl: {
-      type: String,
-    },
-    likes: [
+    MediaUrl: [
       {
-        user: {
-          type: Schema.Types.ObjectID,
-          ref: "users",
-        },
-        count: {
-          type: Number,
+        url: {
+          type: String,
         },
       },
     ],
-    comments: [
-      {
-        user: {
-          type: Schema.Types.ObjectID,
-          ref: "users",
-        },
-        replies: [
-          {
-            user: {
-              type: Schema.Types.ObjectID,
-              ref: "users",
-            },
-            text: {
-              type: String,
-              required: true,
-            },
-            name: {
-              type: String,
-            },
-            avatar: {
-              type: String,
-            },
-            date: {
-              type: Date,
-              default: Date.now,
-            },
-          },
-        ],
-        text: {
-          type: String,
-          required: true,
-        },
-        name: {
-          type: String,
-        },
-        avatar: {
-          type: String,
-        },
-        date: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-    date: {
-      type: Date,
-      default: Date.now,
-    },
   },
   {
     timestamps: true,

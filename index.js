@@ -40,7 +40,7 @@ app.use("/location", country);
 app.use("/user", user);
 app.use("/admin", admin);
 app.use("/alumni", alumni);
-app.use("/postAdd", postApi);
+app.use("/post", postApi);
 app.use("/", upload);
 server.listen(port, function () {
   console.log("listen to server .....", port);

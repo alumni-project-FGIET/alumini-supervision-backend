@@ -4,6 +4,7 @@ const express = require("express");
 const router = express.Router();
 require("dotenv").config();
 const multer = require("multer");
+const auth = require("../Middleware/auth");
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWSACCESSKEYID,
@@ -18,7 +19,7 @@ const storage = multer.memoryStorage({
 
 const upload = multer({ storage }).array("media");
 
-router.post("/uploadMedia", upload, (req, res) => {
+router.post("/uploadMedia", auth, upload, (req, res) => {
   s3.createBucket(function () {
     const filesarray = req.files;
     //Where you want to store your file

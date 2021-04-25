@@ -1,105 +1,172 @@
 const express = require("express");
 const router = express.Router();
-const College = require("../Modal/collegeModels");
-const multer = require("multer");
-const path = require("path");
-const City = require("../Modal/Location/CityModel");
-const adminAuth = require("../Middleware/adminAuth");
-const alumniAuth = require("../Middleware/alumniAuth");
+const auth = require("../Middleware/auth");
 const Post = require("../Modal/PostModel");
-//GET ALL College LIST
+const Alumni = require("../Modal/AlumniModel");
+const alumniAuth = require("../Middleware/alumniAuth");
+const jwt = require("jsonwebtoken");
+const likesModel = require("../Modal/likesModel");
+const UserModel = require("../Modal/UserModel");
 
-router.get("/get", async (req, res) => {
+router.get("/get", auth, async (req, res) => {
   try {
-    const collegeList = await College.find()
-      .select("name status collegeCode city createdAt updatedAt")
-      .populate("city", "name state");
-    res.json({ status: true, data: collegeList });
+    console.log(req.user);
+    const postList = await Post.find({ status: true })
+      .select(
+        "name status title discription MediaUrl likes alumni date createdAt updatedAt"
+      )
+      .populate("alumni", "firstName lastName alumni MediaUrl college")
+      .populate("likes");
+    res.json({ status: true, data: postList });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
   }
 });
 
-//GET ONE College BY ID
-router.get("/:collegeId", async (req, res) => {
-  console.log(req.params.collegeId);
+router.get("/:postId", auth, async (req, res) => {
+  console.log(req.params.postId);
   try {
-    const postDet = await College.findById(req.params.collegeId)
-      .select("name status collegeCode city createdAt updatedAt")
-      .populate("city", "name state");
+    const postDet = await Post.findById(req.params.postId)
+      .select(
+        "name status title discription MediaUrl alumni date createdAt updatedAt"
+      )
+      .populate("alumni", "firstName lastName email  MediaUrl college");
     res.json({ status: true, data: postDet });
   } catch (err) {
-    res.json({ message: err });
+    res.json({ status: false, message: err });
   }
 });
 
-// GET College BY SEARCH
-router.post("/search", async (req, res) => {
+router.post("/search", auth, async (req, res) => {
   try {
     var regex = new RegExp(req.body.title, "i");
-    const postDet = await College.find({ title: regex });
-    res.json(postDet);
+    const postDet = await Post.find({ title: regex });
+    res.json({ status: true, data: postDet });
   } catch (err) {
-    res.json({ message: err });
+    res.json({ status: false, message: err });
   }
 });
 
-//ADD COLLEGE
+router.patch("/like/:post_id", auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.post_id);
+
+    if (!post) return res.status(400).json({ msg: "Post not found" });
+
+    const userId = req.user.user.id;
+
+    if (req.user.user.alumni) {
+      const likesFound = await likesModel.findOne({ alumni: req.user.user.id });
+      console.log(likesFound);
+      if (likesFound) {
+        console.log("Unlikes");
+      } else {
+        console.log("likes");
+        const newLike = await new likesModel({
+          user: null,
+          alumni: req.user.user.id,
+          post: req.params.post_id,
+        });
+        newLike.save().then((res) => {
+          console.log(newLike);
+        });
+      }
+    } else {
+      const likesFound = await likesModel.findOne({ user: req.user.user.id });
+
+      if (likesFound) {
+        console.log("Unlikes user");
+      } else {
+        const newLike = await new likesModel({
+          user: req.user.user.id,
+          alumni: null,
+          post: req.params.post_id,
+        });
+        newLike
+          .save()
+          .then((res) => {
+            console.log("res->", res);
+            Post.findOneAndUpdate(
+              {
+                _id: req.params.post_id,
+              },
+              {
+                $push: {
+                  likes: res._id,
+                },
+              },
+              { upsert: true }
+            );
+          })
+          .catch((err) => console.log(err));
+        console.log(newLike._id);
+        console.log("likes user");
+      }
+    }
+
+    res.json({ status: true, data: post });
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("Server Error");
+  }
+});
+
 router.post("/add", alumniAuth, async (req, res) => {
   try {
-    const newPost = await new Post({});
-    newCollege
+    const userId = req.user.user.id;
+    console.log(req.user.user);
+    const alumniData = await Alumni.findById(userId);
+
+    const newPost = await new Post({
+      user: alumniData.id,
+      title: req.body.title,
+      discription: req.body.discription,
+      status: true,
+      MediaUrl: req.body.MediaUrl,
+    });
+    newPost
       .save()
       .then((data) => {
         res.json({
           status: true,
-          data: newCollege,
+          data: newPost,
         });
       })
       .catch((err) => {
-        console.log(err.code);
-        if (err.code === 11000) {
-          res.json({
-            status: false,
-            message: "Validation error `name` should be unique",
-          });
-        } else {
-          res.json({ status: false, message: "Data not added", error: err });
-        }
+        console.log(err);
+        res.json({ status: false, message: "Post not added " });
       });
   } catch (err) {
-    console.log(req.body);
-    res.json({ status: false, message: "College not added " });
+    res.json({ status: false, message: "Post not added " });
   }
 });
 
-//DELETE THE College BY ID
-router.delete("/:collegeId", adminAuth, async (req, res) => {
-  console.log(req.params.collegeId);
+router.delete("/:postId", auth, async (req, res) => {
+  console.log(req.params.postId);
   try {
-    const removePost = await College.remove({
-      _id: req.params.collegeId,
+    const removePost = await Post.remove({
+      _id: req.params.postId,
     });
-    res.json(removePost);
+    res.json({ status: true, data: removePost });
   } catch (err) {
-    res.json({ message: err });
+    res.json({ status: false, message: err });
   }
 });
 
-router.patch("/:collegeId", adminAuth, async (req, res) => {
-  console.log(req.params.collegeId);
+router.patch("/:postId", auth, async (req, res) => {
+  console.log(req.params.postId);
   try {
     const udpateData = req.body;
-    const changeCollege = await College.findOneAndUpdate(
+    const changePost = await Post.findOneAndUpdate(
       {
-        _id: req.params.collegeId,
+        _id: req.params.postId,
       },
       {
         $set: udpateData,
       },
       { upsert: true }
     );
-    res.json({ status: true, data: changeCollege });
+    res.json({ status: true, data: changePost });
   } catch (err) {
     res.json({ message: err });
   }

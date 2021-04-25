@@ -17,7 +17,8 @@ module.exports = async (req, res, next) => {
       console.log(bearerHeader);
       const decoded = jwt.verify(bearerHeader, process.env.JWT);
       userEmail = decoded.user.email;
-      console.log(decoded);
+      req.user = decoded;
+
       const adminData = await Admin.findOne({ email: userEmail });
       if (adminData) {
         next();

@@ -89,4 +89,4 @@ const alumnischema = Schema(
   }
 );
 
-module.exports = mongoose.model("alumni", alumnischema);
+module.exports = mongoose.model("alumnis", alumnischema);
