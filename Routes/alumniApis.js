@@ -277,7 +277,7 @@ router.post(
                 }
               }
             );
-            const alumniOne = await Alumni.findOne({ email: email });
+            const alumniOne = Alumni.findOne({ email: email });
             if (!alumniOne)
               return res.json({
                 status: false,

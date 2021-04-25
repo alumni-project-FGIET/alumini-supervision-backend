@@ -141,7 +141,7 @@ router.post(
           title: title,
         });
 
-        const adminOne = await Admin.findOne({ email: email });
+        const adminOne = Admin.findOne({ email: email });
         if (!adminOne) {
           return res.status(400).json({
             status: false,
