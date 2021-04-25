@@ -215,7 +215,7 @@ router.post(
           password: passwordHased,
         });
         newUser.save();
-        const userOne = await User.findOne({ email: email });
+        const userOne = User.findOne({ email: email });
         if (!userOne)
           return res.json({ status: false, data: "User is not regsitered" });
         const payload = {
