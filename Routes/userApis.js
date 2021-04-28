@@ -237,8 +237,7 @@ router.post(
       };
       smtpTransport.sendMail(mailOptions, function (err) {
         if (!err) res.json({ status: true, message: "Email Send to mail" });
-        else
-          return res.json({ status: false, message: "Email not Send to mail" });
+        else res.json({ status: false, message: "Email not Send to mail" });
       });
 
       const userOne = User.findOne({ email: email });
