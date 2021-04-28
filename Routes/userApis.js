@@ -240,6 +240,7 @@ router.post(
           console.log(error);
           return res.json({ status: false, message: "Email not Send to mail" });
         }
+
         const userOne = User.findOne({ email: email });
 
         if (!userOne)
