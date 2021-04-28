@@ -96,13 +96,17 @@ router.post(
           .status(400)
           .json({ errors: [{ msg: "Invalid Credentials" }] });
       }
+      if (!user.verified === true)
+        return res.status(400).json({
+          errors: [{ status: false, msg: "Verify Your Account Credentials" }],
+        });
       if (user.status === true) {
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        if (!isMatch)
           return res
             .status(400)
             .json({ errors: [{ msg: "Invalid Credentials" }] });
-        }
+
         const payload = {
           user: {
             email: user.email,
@@ -117,7 +121,7 @@ router.post(
             expiresIn: 360000,
           },
           (err, token) => {
-            if (token) {
+            if (token)
               res.json({
                 status: true,
                 data: {
@@ -134,7 +138,7 @@ router.post(
                   token: token,
                 },
               });
-            } else res.json({ status: false, message: "token not generated " });
+            else res.json({ status: false, message: "token not generated " });
           }
         );
       } else
@@ -174,104 +178,95 @@ router.post(
       password,
       phoneNo,
     } = req.body;
-    if (
-      !firstName ||
-      !rollNo ||
-      !collegeId ||
-      !phoneNo ||
-      !password ||
-      !email
-    ) {
+    if (!firstName || !rollNo || !collegeId || !phoneNo || !password || !email)
       return res.status(400).json({
         status: false,
         errors: {
           msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty",
         },
       });
-    } else {
-      try {
-        let user = await User.findOne({ email: email });
-        if (user) {
-          return res
-            .status(400)
-            .json({ errors: { msg: "User already exists" } });
-        }
 
-        const salt = await bcrypt.genSalt(10);
-        const passwordHased = await bcrypt.hash(password, salt);
-        const newUser = new User({
-          email: email,
-          phoneNo: phoneNo,
-          status: true,
-          rollNo: rollNo,
-          firstName: firstName,
-          lastName: lastName,
-          MediaUrl: null,
-          verified: false,
-          college: collegeId,
-          password: passwordHased,
-        });
-        newUser.save();
-        var smtpTransport = await nodemailer.createTransport({
-          service: "Gmail",
-          auth: {
-            user: "singhnitesh9001@gmail.com",
-            pass: `${process.env.EMAIL_PASSWORD}`,
-          },
-        });
-        var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-        ramdomNo = String(ramdomNo);
-        ramdomNo = ramdomNo.substring(0, 4);
-        console.log(ramdomNo, userDet[0]._id);
-        var mailOptions = {
-          to: email,
-          from: "singhnitesh9001@gmail.com",
-          subject: "Verify Account",
-          html:
-            "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-            ramdomNo +
-            "</h1></div>",
-        };
-        let info = await smtpTransport.sendMail(mailOptions, function (err) {
-          // console.log("err", err, userDet);
-          if (!err) res.json({ status: true, message: "Email Send to mail" });
-          else res.json({ status: false, message: "Email not Send to mail" });
-        });
-        const userOne = User.findOne({ email: email });
-        if (!userOne)
-          return res.json({ status: false, data: "User is not regsitered" });
-        const payload = {
-          user: {
-            email: email,
-            id: userOne._id,
-            alumni: false,
-          },
-        };
-
-        jwt.sign(payload, process.env.JWT, function (err, token) {
-          console.log(err, token);
-          if (token) {
-            res.json({
-              status: true,
-              data: {
-                firstName: firstName,
-                lastName: lastName,
-                email: email,
-                status: status,
-                rollNo: rollNo,
-                phoneNo: phoneNo,
-                college: collegeId,
-                token: token,
-                verifyToken: ramdomNo,
-              },
-            });
-          }
-        });
-        //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
-      } catch (err) {
-        console.log(req.body);
-        res.json({ status: false, message: "User not added", error: err });
+    try {
+      let user = await User.findOne({ email: email });
+      if (user) {
+        return res.status(400).json({ errors: { msg: "User already exists" } });
       }
+
+      const salt = await bcrypt.genSalt(10);
+      const passwordHased = await bcrypt.hash(password, salt);
+      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+      ramdomNo = String(ramdomNo);
+      ramdomNo = ramdomNo.substring(0, 4);
+      const newUser = new User({
+        email: email,
+        phoneNo: phoneNo,
+        status: true,
+        rollNo: rollNo,
+        firstName: firstName,
+        lastName: lastName,
+        MediaUrl: null,
+        verified: false,
+        college: collegeId,
+        password: passwordHased,
+        verifyToken: ramdomNo,
+      });
+      newUser.save();
+      var smtpTransport = await nodemailer.createTransport({
+        service: "Gmail",
+        auth: {
+          user: "singhnitesh9001@gmail.com",
+          pass: `${process.env.EMAIL_PASSWORD}`,
+        },
+      });
+
+      console.log(ramdomNo, userDet[0]._id);
+      var mailOptions = {
+        to: email,
+        from: "singhnitesh9001@gmail.com",
+        subject: "Verify Account",
+        html:
+          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+          ramdomNo +
+          "</h1></div>",
+      };
+      let info = await smtpTransport.sendMail(mailOptions, function (err) {
+        // console.log("err", err, userDet);
+        if (!err) res.json({ status: true, message: "Email Send to mail" });
+        else res.json({ status: false, message: "Email not Send to mail" });
+      });
+      const userOne = User.findOne({ email: email });
+      if (!userOne)
+        return res.json({ status: false, data: "User is not regsitered" });
+      const payload = {
+        user: {
+          email: email,
+          id: userOne._id,
+          alumni: false,
+        },
+      };
+
+      jwt.sign(payload, process.env.JWT, function (err, token) {
+        console.log(err, token);
+        if (token) {
+          res.json({
+            status: true,
+            data: {
+              firstName: firstName,
+              lastName: lastName,
+              email: email,
+              status: status,
+              rollNo: rollNo,
+              phoneNo: phoneNo,
+              college: collegeId,
+              token: token,
+            },
+          });
+        }
+      });
+      //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
+    } catch (err) {
+      console.log(req.body);
+      res.json({ status: false, message: "User not added", error: err });
     }
   }
 );
@@ -367,59 +362,58 @@ router.delete("/delete/:userId", auth, async (req, res) => {
   }
 });
 
-router.post("/send-email", async (req, res) => {
-  const { email } = req.body;
-  try {
-    const userDet = await User.find({ email: email });
-
-    if (userDet) {
-      var smtpTransport = await nodemailer.createTransport({
-        service: "Gmail",
-        auth: {
-          user: "singhnitesh9001@gmail.com",
-          pass: `${process.env.EMAIL_PASSWORD}`,
-        },
-      });
-      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-      ramdomNo = String(ramdomNo);
-      ramdomNo = ramdomNo.substring(0, 4);
-      console.log(ramdomNo, userDet[0]._id);
-      var mailOptions = {
-        to: email,
-        from: "singhnitesh9001@gmail.com",
-        subject: "Verify Account",
-        html:
-          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-          ramdomNo +
-          "</h1></div>",
-      };
-      let info = await smtpTransport.sendMail(mailOptions, function (err) {
-        console.log("err", err, userDet);
-        if (!err) {
-          res.json({ status: true, message: "Email Send to mail" });
-        } else {
-          res.json({ status: false, message: "Email not Send to mail" });
-        }
-      });
-      const userData = {
-        verifyToken: ramdomNo,
-      };
-      const changeuser = await User.findByIdAndUpdate(
-        {
-          _id: userDet[0]._id,
-        },
-        {
-          $set: {
-            verifyToken: ramdomNo,
-          },
-        },
-        { upsert: true }
-      );
-    }
-  } catch (err) {
-    res.json({ message: err });
-  }
-});
+// router.post("/send-email", async (req, res) => {
+//   const { email } = req.body;
+//   try {
+//     const userDet = await User.find({ email: email });
+//     if (userDet) {
+//       var smtpTransport = await nodemailer.createTransport({
+//         service: "Gmail",
+//         auth: {
+//           user: "singhnitesh9001@gmail.com",
+//           pass: `${process.env.EMAIL_PASSWORD}`,
+//         },
+//       });
+//       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+//       ramdomNo = String(ramdomNo);
+//       ramdomNo = ramdomNo.substring(0, 4);
+//       console.log(ramdomNo, userDet[0]._id);
+//       var mailOptions = {
+//         to: email,
+//         from: "singhnitesh9001@gmail.com",
+//         subject: "Verify Account",
+//         html:
+//           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+//           ramdomNo +
+//           "</h1></div>",
+//       };
+//       let info = await smtpTransport.sendMail(mailOptions, function (err) {
+//         console.log("err", err, userDet);
+//         if (!err) {
+//           res.json({ status: true, message: "Email Send to mail" });
+//         } else {
+//           res.json({ status: false, message: "Email not Send to mail" });
+//         }
+//       });
+//       const userData = {
+//         verifyToken: ramdomNo,
+//       };
+//       const changeuser = await User.findByIdAndUpdate(
+//         {
+//           _id: userDet[0]._id,
+//         },
+//         {
+//           $set: {
+//             verifyToken: ramdomNo,
+//           },
+//         },
+//         { upsert: true }
+//       );
+//     }
+//   } catch (err) {
+//     res.json({ message: err });
+//   }
+// });
 
 router.post("/verify", async (req, res) => {
   const { email, tokenValue } = req.body;

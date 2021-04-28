@@ -225,6 +225,9 @@ router.post(
           }
           const salt = await bcrypt.genSalt(10);
           const passwordHased = await bcrypt.hash(password, salt);
+          var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+          ramdomNo = String(ramdomNo);
+          ramdomNo = ramdomNo.substring(0, 4);
           const newAlumni = new Alumni({
             firstName: firstName,
             lastName: lastName,
@@ -238,14 +241,12 @@ router.post(
             jobProvider: jobProvider,
             verified: false,
             college: collegeId,
+            verifyToken: ramdomNo,
             password: passwordHased,
           });
           const response = await newAlumni.save();
 
           if (response) {
-            var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-            ramdomNo = String(ramdomNo);
-            ramdomNo = ramdomNo.substring(0, 4);
             var smtpTransport = await nodemailer.createTransport({
               service: "Gmail",
               auth: {
