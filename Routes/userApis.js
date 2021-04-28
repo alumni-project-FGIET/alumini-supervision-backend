@@ -134,17 +134,14 @@ router.post(
                   token: token,
                 },
               });
-            } else {
-              res.json({ status: false, message: "token not generated " });
-            }
+            } else res.json({ status: false, message: "token not generated " });
           }
         );
-      } else {
+      } else
         res.json({
           status: false,
           message: "user is blocked please contact other user",
         });
-      }
     } catch (err) {
       res.json({ status: false, message: "Login failed" });
     }
@@ -164,9 +161,9 @@ router.post(
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
-    }
+
     const {
       firstName,
       lastName,
@@ -205,7 +202,7 @@ router.post(
         const newUser = new User({
           email: email,
           phoneNo: phoneNo,
-          status: status,
+          status: true,
           rollNo: rollNo,
           firstName: firstName,
           lastName: lastName,
@@ -215,6 +212,31 @@ router.post(
           password: passwordHased,
         });
         newUser.save();
+        var smtpTransport = await nodemailer.createTransport({
+          service: "Gmail",
+          auth: {
+            user: "singhnitesh9001@gmail.com",
+            pass: `${process.env.EMAIL_PASSWORD}`,
+          },
+        });
+        var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+        ramdomNo = String(ramdomNo);
+        ramdomNo = ramdomNo.substring(0, 4);
+        console.log(ramdomNo, userDet[0]._id);
+        var mailOptions = {
+          to: email,
+          from: "singhnitesh9001@gmail.com",
+          subject: "Verify Account",
+          html:
+            "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+            ramdomNo +
+            "</h1></div>",
+        };
+        let info = await smtpTransport.sendMail(mailOptions, function (err) {
+          // console.log("err", err, userDet);
+          if (!err) res.json({ status: true, message: "Email Send to mail" });
+          else res.json({ status: false, message: "Email not Send to mail" });
+        });
         const userOne = User.findOne({ email: email });
         if (!userOne)
           return res.json({ status: false, data: "User is not regsitered" });
@@ -240,6 +262,7 @@ router.post(
                 phoneNo: phoneNo,
                 college: collegeId,
                 token: token,
+                verifyToken: ramdomNo,
               },
             });
           }

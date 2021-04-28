@@ -16,6 +16,9 @@ const postSchema = Schema(
         ref: "likes",
       },
     ],
+    likeCount: {
+      type: Number,
+    },
     discription: {
       type: String,
     },

@@ -7,6 +7,7 @@ const alumniAuth = require("../Middleware/alumniAuth");
 const jwt = require("jsonwebtoken");
 const likesModel = require("../Modal/likesModel");
 const UserModel = require("../Modal/UserModel");
+var ObjectId = require("mongodb").ObjectID;
 
 router.get("/get", auth, async (req, res) => {
   try {
@@ -51,31 +52,60 @@ router.patch("/like/:post_id", auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.post_id);
 
-    if (!post) return res.status(400).json({ msg: "Post not found" });
-
-    const userId = req.user.user.id;
+    // if (!post) return res.status(400).json({ msg: "Post not found" });
 
     if (req.user.user.alumni) {
-      const likesFound = await likesModel.findOne({ alumni: req.user.user.id });
-      console.log(likesFound);
-      if (likesFound) {
-        console.log("Unlikes");
-      } else {
-        console.log("likes");
-        const newLike = await new likesModel({
-          user: null,
-          alumni: req.user.user.id,
-          post: req.params.post_id,
-        });
-        newLike.save().then((res) => {
-          console.log(newLike);
-        });
-      }
-    } else {
-      const likesFound = await likesModel.findOne({ user: req.user.user.id });
+      const likesFound = await likesModel.findOne({
+        alumni: req.user.user.id,
+        post: req.params.post_id,
+      });
 
       if (likesFound) {
-        console.log("Unlikes user");
+        const newpost = post.likes.filter(
+          (e) => e.toString() !== likesFound._id.toString()
+        );
+
+        post.likes = newpost;
+        post.likeCount = newpost.length;
+
+        // await post.save().then((res) => {
+        //   console.log(likesFound._id);
+        //   if (res) likesModel.remove({ _id: ObjectId(likesFound._id) });
+        // });
+        console.log(newpost);
+      } else {
+        const newLike = await new likesModel({
+          user: null,
+          user: req.user.user.id,
+          post: req.params.post_id,
+        });
+        newLike
+          .save()
+          .then((res) => {
+            post.likes.unshift(res._id);
+            post.likeCount = post.likes.length;
+            post.save();
+          })
+          .catch((err) => console.log(err));
+      }
+    } else {
+      const likesFound = await likesModel.findOne({
+        user: req.user.user.id,
+        post: req.params.post_id,
+      });
+
+      if (likesFound) {
+        const newpost = post.likes.filter(
+          (e) => e.toString() !== likesFound._id.toString()
+        );
+        post.likes = newpost;
+        post.likeCount = newpost.length;
+        console.log(newpost);
+
+        // await post.save().then((res) => {
+        //   console.log(likesFound._id);
+        //   if (res) likesModel.remove({ _id: ObjectId(likesFound._id) });
+        // });
       } else {
         const newLike = await new likesModel({
           user: req.user.user.id,
@@ -85,25 +115,13 @@ router.patch("/like/:post_id", auth, async (req, res) => {
         newLike
           .save()
           .then((res) => {
-            console.log("res->", res);
-            Post.findOneAndUpdate(
-              {
-                _id: req.params.post_id,
-              },
-              {
-                $push: {
-                  likes: res._id,
-                },
-              },
-              { upsert: true }
-            );
+            post.likes.unshift(res._id);
+            post.likeCount = post.likes.length;
+            post.save();
           })
           .catch((err) => console.log(err));
-        console.log(newLike._id);
-        console.log("likes user");
       }
     }
-
     res.json({ status: true, data: post });
   } catch (e) {
     console.log(e);

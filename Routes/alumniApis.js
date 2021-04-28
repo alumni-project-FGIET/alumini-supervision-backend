@@ -243,6 +243,9 @@ router.post(
           const response = await newAlumni.save();
 
           if (response) {
+            var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+            ramdomNo = String(ramdomNo);
+            ramdomNo = ramdomNo.substring(0, 4);
             var smtpTransport = await nodemailer.createTransport({
               service: "Gmail",
               auth: {
@@ -250,33 +253,27 @@ router.post(
                 pass: `${process.env.EMAIL_PASSWORD}`,
               },
             });
-            var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-            ramdomNo = String(ramdomNo);
-            ramdomNo = ramdomNo.substring(0, 4);
+
             var mailOptions = {
               to: email,
               from: "singhnitesh9001@gmail.com",
               subject: "Verify Account",
               html:
                 "<div> <h3 style='color:'blue'> You are receiving this because Alumni " +
-                email +
                 "have requested the verification of account.<br /> Do not share this link with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>Verify with token " +
                 ramdomNo +
                 "</h1></div>",
             };
-            let info = await smtpTransport.sendMail(
-              mailOptions,
-              function (err) {
-                if (!err) {
-                  res.json({ status: true, message: "Email Send to mail" });
-                } else {
-                  res.json({
-                    status: false,
-                    message: "Email not Send to mail",
-                  });
-                }
+            await smtpTransport.sendMail(mailOptions, function (err) {
+              if (!err) {
+                res.json({ status: true, message: "Email Send to mail" });
+              } else {
+                res.json({
+                  status: false,
+                  message: "Email not Send to mail",
+                });
               }
-            );
+            });
             const alumniOne = Alumni.findOne({ email: email });
             if (!alumniOne)
               return res.json({

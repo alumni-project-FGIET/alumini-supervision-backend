@@ -22,6 +22,7 @@ const alumnischema = Schema(
       type: String,
       required: true,
     },
+
     verified: {
       type: Boolean,
     },
@@ -31,13 +32,16 @@ const alumnischema = Schema(
       type: Schema.Types.ObjectId,
       ref: "colleges",
     },
+
     rollNo: {
       type: String,
       required: true,
     },
+
     alumni: {
       type: Boolean,
     },
+
     jobs: [
       {
         from: {
@@ -64,22 +68,28 @@ const alumnischema = Schema(
         },
       },
     ],
+
     jobProvider: {
       type: String,
     },
+
     verifyToken: {
       type: String,
     },
+
     password: {
       type: String,
       required: true,
     },
+
     status: {
       type: Boolean,
     },
+
     resetPasswordToken: {
       type: String,
     },
+
     resetPasswordExpires: {
       type: String,
     },
