@@ -8,7 +8,7 @@ module.exports = async (req, res, next) => {
   if (!bearerHeader)
     return res
       .status(401)
-      .json({ status: false, msg: "No token, authorization denied" });
+      .json({ status: false, message: "No token, authorization denied" });
   //    verify token
   else {
     try {
@@ -24,12 +24,12 @@ module.exports = async (req, res, next) => {
         next();
         console.log("done");
       } else {
-        res.status(401).json({ status: false, msg: "Token is not valid" });
+        res.status(401).json({ status: false, message: "Token is not valid" });
       }
     } catch (e) {
       res
         .status(401)
-        .json({ status: false, msg: "Token is not valid", err: e });
+        .json({ status: false, message: "Token is not valid", err: e });
     }
   }
 };

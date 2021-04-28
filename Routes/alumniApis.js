@@ -106,7 +106,9 @@ router.post(
       if (!alumni) {
         return res
           .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials, Email not found" }] });
+          .json({
+            errors: [{ message: "Invalid Credentials, Email not found" }],
+          });
       }
       if (alumni.status === true) {
         const isMatch = await bcrypt.compare(password, alumni.password);
@@ -114,7 +116,7 @@ router.post(
         if (!isMatch) {
           return res
             .status(400)
-            .json({ errors: [{ msg: "Invalid Credentials" }] });
+            .json({ errors: [{ message: "Invalid Credentials" }] });
         }
         console.log(alumni);
         const payload = {
@@ -210,7 +212,7 @@ router.post(
         return res.status(400).json({
           status: false,
           errors: {
-            msg:
+            message:
               "jobs , firstName ,rollNo ,email,collegeId phoneNo ,password any of should not be empty",
           },
         });
@@ -220,7 +222,7 @@ router.post(
           if (alumni) {
             return res.status(400).json({
               status: false,
-              errors: { msg: "Alumni already exists" },
+              errors: { message: "Alumni already exists" },
             });
           }
           const salt = await bcrypt.genSalt(10);

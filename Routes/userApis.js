@@ -85,27 +85,29 @@ router.post(
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
-    }
+
     const { email, password } = req.body;
     try {
       let user = await User.findOne({ email: email });
-      if (!user) {
+      if (!user)
         return res
           .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
-      }
+          .json({ errors: [{ message: "Invalid Credentials" }] });
+
       if (!user.verified === true)
         return res.status(400).json({
-          errors: [{ status: false, msg: "Verify Your Account Credentials" }],
+          errors: [
+            { status: false, message: "Verify Your Account Credentials" },
+          ],
         });
       if (user.status === true) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
           return res
             .status(400)
-            .json({ errors: [{ msg: "Invalid Credentials" }] });
+            .json({ errors: [{ message: "Invalid Credentials" }] });
 
         const payload = {
           user: {
@@ -182,21 +184,24 @@ router.post(
       return res.status(400).json({
         status: false,
         errors: {
-          msg: "jobs , firstName ,rollNo collegeId phoneNo should not be empty",
+          message: "firstName ,rollNo collegeId phoneNo should not be empty",
         },
       });
 
     try {
       let user = await User.findOne({ email: email });
-      if (user) {
-        return res.status(400).json({ errors: { msg: "User already exists" } });
-      }
+      if (user)
+        return res
+          .status(400)
+          .json({ errors: { message: "User already exists" } });
 
       const salt = await bcrypt.genSalt(10);
       const passwordHased = await bcrypt.hash(password, salt);
+
       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
       ramdomNo = String(ramdomNo);
       ramdomNo = ramdomNo.substring(0, 4);
+
       const newUser = new User({
         email: email,
         phoneNo: phoneNo,
@@ -211,6 +216,7 @@ router.post(
         verifyToken: ramdomNo,
       });
       newUser.save();
+
       var smtpTransport = await nodemailer.createTransport({
         service: "Gmail",
         auth: {
@@ -219,7 +225,6 @@ router.post(
         },
       });
 
-      console.log(ramdomNo, userDet[0]._id);
       var mailOptions = {
         to: email,
         from: "singhnitesh9001@gmail.com",
@@ -229,14 +234,14 @@ router.post(
           ramdomNo +
           "</h1></div>",
       };
-      let info = await smtpTransport.sendMail(mailOptions, function (err) {
+      await smtpTransport.sendMail(mailOptions, function (err) {
         // console.log("err", err, userDet);
         if (!err) res.json({ status: true, message: "Email Send to mail" });
         else res.json({ status: false, message: "Email not Send to mail" });
       });
       const userOne = User.findOne({ email: email });
       if (!userOne)
-        return res.json({ status: false, data: "User is not regsitered" });
+        return res.json({ status: false, errors: "User is not regsitered" });
       const payload = {
         user: {
           email: email,
@@ -266,7 +271,7 @@ router.post(
       //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
     } catch (err) {
       console.log(req.body);
-      res.json({ status: false, message: "User not added", error: err });
+      res.json({ status: false, message: "User not added", errors: err });
     }
   }
 );

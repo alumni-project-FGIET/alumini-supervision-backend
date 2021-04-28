@@ -54,13 +54,13 @@ router.post(
       let admin = await Admin.findOne({ email });
       console.log(admin);
       if (!admin) {
-        return res.json({ errors: [{ msg: "Invalid Credentials" }] });
+        return res.json({ errors: [{ message: "Invalid Credentials" }] });
       }
       if (admin.status) {
         const isMatch = await bcrypt.compare(password, admin.password);
         console.log("not", admin.password, isMatch);
         if (!isMatch) {
-          return res.json({ errors: [{ msg: "Invalid Credentials" }] });
+          return res.json({ errors: [{ message: "Invalid Credentials" }] });
         }
         const payload = {
           user: {
@@ -127,7 +127,7 @@ router.post(
         if (admin) {
           return res
             .status(400)
-            .json({ errors: { msg: "admin already exists" } });
+            .json({ errors: { message: "admin already exists" } });
         }
         const salt = await bcrypt.genSalt(10);
         const passwordHased = await bcrypt.hash(password, salt);
@@ -145,7 +145,7 @@ router.post(
         if (!adminOne) {
           return res.status(400).json({
             status: false,
-            errors: { msg: "Admin already exists" },
+            errors: { message: "Admin already exists" },
           });
         }
 

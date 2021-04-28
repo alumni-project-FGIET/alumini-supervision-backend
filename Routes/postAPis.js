@@ -52,7 +52,7 @@ router.patch("/like/:post_id", auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.post_id);
 
-    // if (!post) return res.status(400).json({ msg: "Post not found" });
+    // if (!post) return res.status(400).json({ message: "Post not found" });
 
     if (req.user.user.alumni) {
       const likesFound = await likesModel.findOne({
