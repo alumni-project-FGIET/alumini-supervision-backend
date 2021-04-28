@@ -267,47 +267,47 @@ router.post(
                 ramdomNo +
                 "</h1></div>",
             };
-            smtpTransport.sendMail(mailOptions, function (err) {
-              if (!err)
-                res.json({ status: true, message: "Email Send to mail" });
-              else
+            smtpTransport.sendMail(mailOptions, function (err, info) {
+              if (err) {
                 res.json({
                   status: false,
                   message: "Email not Send to mail",
                 });
-            });
-            const alumniOne = Alumni.findOne({ email: email });
-            if (!alumniOne)
-              return res.json({
-                status: false,
-                data: "Alumni is not registered",
-              });
-            const payload = {
-              user: {
-                email: email,
-                id: alumniOne._id,
-                alumni: true,
-              },
-            };
-            jwt.sign(payload, process.env.JWT, function (err, token) {
-              console.log(err, token);
-              if (token) {
-                res.json({
-                  status: true,
-                  data: {
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email,
-                    alumni: true,
+              } else {
+                const alumniOne = Alumni.findOne({ email: email });
+                if (!alumniOne)
+                  return res.json({
                     status: false,
-                    rollNo: rollNo,
-                    jobs: jobs,
-                    jobProvider: jobProvider,
-                    phoneNo: phoneNo,
-                    verified: false,
-                    college: collegeId,
-                    token: token,
+                    data: "Alumni is not registered",
+                  });
+                const payload = {
+                  user: {
+                    email: email,
+                    id: alumniOne._id,
+                    alumni: true,
                   },
+                };
+                jwt.sign(payload, process.env.JWT, function (err, token) {
+                  console.log(err, token);
+                  if (token) {
+                    res.json({
+                      status: true,
+                      data: {
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        alumni: true,
+                        status: false,
+                        rollNo: rollNo,
+                        jobs: jobs,
+                        jobProvider: jobProvider,
+                        phoneNo: phoneNo,
+                        verified: false,
+                        college: collegeId,
+                        token: token,
+                      },
+                    });
+                  }
                 });
               }
             });

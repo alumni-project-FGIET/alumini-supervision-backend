@@ -235,39 +235,44 @@ router.post(
           ramdomNo +
           "</h1></div>",
       };
-      smtpTransport.sendMail(mailOptions, function (err) {
-        if (!err) res.json({ status: true, message: "Email Send to mail" });
-        else res.json({ status: false, message: "Email not Send to mail" });
-      });
+      smtpTransport.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          res.json({ status: false, message: "Email not Send to mail" });
+        } else {
+          console.log(info);
+          const userOne = User.findOne({ email: email });
 
-      const userOne = User.findOne({ email: email });
+          if (!userOne)
+            return res.json({
+              status: false,
+              errors: "User is not regsitered",
+            });
 
-      if (!userOne)
-        return res.json({ status: false, errors: "User is not regsitered" });
-
-      const payload = {
-        user: {
-          email: email,
-          id: userOne._id,
-          alumni: false,
-        },
-      };
-
-      jwt.sign(payload, process.env.JWT, function (err, token) {
-        console.log(err, token);
-        if (token) {
-          res.json({
-            status: true,
-            data: {
-              firstName: firstName,
-              lastName: lastName,
+          const payload = {
+            user: {
               email: email,
-              status: status,
-              rollNo: rollNo,
-              phoneNo: phoneNo,
-              college: collegeId,
-              token: token,
+              id: userOne._id,
+              alumni: false,
             },
+          };
+
+          jwt.sign(payload, process.env.JWT, function (err, token) {
+            console.log(err, token);
+            if (token) {
+              res.json({
+                status: true,
+                data: {
+                  firstName: firstName,
+                  lastName: lastName,
+                  email: email,
+                  status: status,
+                  rollNo: rollNo,
+                  phoneNo: phoneNo,
+                  college: collegeId,
+                  token: token,
+                },
+              });
+            }
           });
         }
       });
