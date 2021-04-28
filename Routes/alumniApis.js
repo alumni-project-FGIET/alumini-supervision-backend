@@ -104,11 +104,9 @@ router.post(
     try {
       let alumni = await Alumni.findOne({ email: email });
       if (!alumni) {
-        return res
-          .status(400)
-          .json({
-            errors: [{ message: "Invalid Credentials, Email not found" }],
-          });
+        return res.status(400).json({
+          errors: [{ message: "Invalid Credentials, Email not found" }],
+        });
       }
       if (alumni.status === true) {
         const isMatch = await bcrypt.compare(password, alumni.password);
@@ -230,6 +228,7 @@ router.post(
           var ramdomNo = Math.floor(100000 + Math.random() * 900000);
           ramdomNo = String(ramdomNo);
           ramdomNo = ramdomNo.substring(0, 4);
+
           const newAlumni = new Alumni({
             firstName: firstName,
             lastName: lastName,
@@ -246,10 +245,11 @@ router.post(
             verifyToken: ramdomNo,
             password: passwordHased,
           });
+
           const response = await newAlumni.save();
 
           if (response) {
-            var smtpTransport = await nodemailer.createTransport({
+            var smtpTransport = nodemailer.createTransport({
               service: "Gmail",
               auth: {
                 user: "singhnitesh9001@gmail.com",
@@ -267,15 +267,14 @@ router.post(
                 ramdomNo +
                 "</h1></div>",
             };
-            await smtpTransport.sendMail(mailOptions, function (err) {
-              if (!err) {
+            smtpTransport.sendMail(mailOptions, function (err) {
+              if (!err)
                 res.json({ status: true, message: "Email Send to mail" });
-              } else {
+              else
                 res.json({
                   status: false,
                   message: "Email not Send to mail",
                 });
-              }
             });
             const alumniOne = Alumni.findOne({ email: email });
             if (!alumniOne)
