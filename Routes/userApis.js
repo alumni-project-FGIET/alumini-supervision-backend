@@ -215,9 +215,10 @@ router.post(
         password: passwordHased,
         verifyToken: ramdomNo,
       });
-      newUser.save();
 
-      var smtpTransport = await nodemailer.createTransport({
+      await newUser.save();
+
+      var smtpTransport = nodemailer.createTransport({
         service: "Gmail",
         auth: {
           user: "singhnitesh9001@gmail.com",
@@ -234,14 +235,18 @@ router.post(
           ramdomNo +
           "</h1></div>",
       };
-      await smtpTransport.sendMail(mailOptions, function (err) {
+      smtpTransport.sendMail(mailOptions, function (err) {
         // console.log("err", err, userDet);
         if (!err) res.json({ status: true, message: "Email Send to mail" });
-        else res.json({ status: false, message: "Email not Send to mail" });
+        else
+          return res.json({ status: false, message: "Email not Send to mail" });
       });
+
       const userOne = User.findOne({ email: email });
+
       if (!userOne)
         return res.json({ status: false, errors: "User is not regsitered" });
+
       const payload = {
         user: {
           email: email,
@@ -268,9 +273,7 @@ router.post(
           });
         }
       });
-      //  req.send({status:true, 'An e-mail has been sent to ' + email + ' with further instructions.'})
     } catch (err) {
-      console.log(req.body);
       res.json({ status: false, message: "User not added", errors: err });
     }
   }
