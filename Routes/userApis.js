@@ -236,7 +236,6 @@ router.post(
           "</h1></div>",
       };
       smtpTransport.sendMail(mailOptions, function (err) {
-        // console.log("err", err, userDet);
         if (!err) res.json({ status: true, message: "Email Send to mail" });
         else
           return res.json({ status: false, message: "Email not Send to mail" });
