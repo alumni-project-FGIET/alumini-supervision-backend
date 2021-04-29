@@ -12,17 +12,27 @@ var ObjectId = require("mongodb").ObjectID;
 router.get("/get-likes", auth, async (req, res) => {
   try {
     const postList = await Post.find({ status: true })
-      .select("likesAlumni likesUser likeCount")
+      .select("likesUser likeCount")
       .populate({
-        path: "likesAlumni",
+        path: "likesUser",
         model: "likes",
-        select: "alumni post date",
+        select: "alumni user post date",
+        populate: {
+          path: "alumni",
+          model: "alumnis",
+          select: "firstName lastName email college",
+        },
       })
       .populate({
         path: "likesUser",
         model: "likes",
-        select: "user post date",
+        populate: {
+          path: "user",
+          model: "users",
+          select: "firstName lastName email college",
+        },
       });
+
     res.json({ status: true, data: postList });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
@@ -34,7 +44,7 @@ router.get("/get", auth, async (req, res) => {
     console.log(req.user);
     const postList = await Post.find({ status: true })
       .select(
-        "name status title discription MediaUrl likesAlumni likesUser likeCount alumni date createdAt updatedAt"
+        "name status title discription MediaUrl likesUser likeCount alumni date createdAt updatedAt"
       )
       .populate("alumni", "firstName lastName alumni MediaUrl college");
 
@@ -49,9 +59,14 @@ router.get("/:postId", auth, async (req, res) => {
   try {
     const postDet = await Post.findById(req.params.postId)
       .select(
-        "name status title discription MediaUrl alumni date createdAt updatedAt"
+        "name status title discription MediaUrl likesUser likeCount alumni date createdAt updatedAt"
       )
-      .populate("alumni", "firstName lastName email MediaUrl college");
+      .populate("alumni", "firstName lastName email MediaUrl college")
+      .populate({
+        path: "likesUser",
+        model: "likes",
+        select: "alumni user post date",
+      });
     res.json({ status: true, data: postDet });
   } catch (err) {
     res.json({ status: false, message: err });
@@ -88,22 +103,106 @@ router.patch("/like/:post_id", auth, async (req, res) => {
 
         newLike.save().then((response) => {
           post.likesUser.unshift(response._id);
-          post.likeCount = post.likesAlumni.length + post.likesUser.length;
+          post.likeCount = post.likesUser.length;
           post.save();
         });
-        // const newpost = post.likes.filter(
-        //   (e) => e.toString() !== likesFound._id.toString()
-        // );
-        // post.likes = newpost;
-        // post.likeCount = newpost.length;
-        // console.log(newpost);
-
-        // await post.save().then((res) => {
-        //   console.log(likesFound._id);
-        //   if (res) likesModel.remove({ _id: ObjectId(likesFound._id) });
-        // });
       } else {
-        console.log(likesFound);
+        const newpost = post.likesUser.filter(
+          (e) => e.toString() !== likesFound._id.toString()
+        );
+        await Post.updateOne(
+          { _id: post._id },
+          {
+            $set: { likesUser: newpost, likeCount: newpost.length },
+            $currentDate: { lastModified: true },
+          },
+          function (err, result) {
+            if (err) throw err;
+          }
+        );
+        await likesModel.remove({ _id: likesFound._id });
+      }
+    } else {
+      const likesFound = await likesModel.findOne({
+        $and: [{ alumni: req.user.user.id }, { post: req.params.post_id }],
+      });
+
+      if (!likesFound) {
+        const newLike = new likesModel({
+          user: null,
+          alumni: req.user.user.id,
+          post: req.params.post_id,
+        });
+
+        newLike.save().then((response) => {
+          post.likesUser.unshift(response._id);
+          post.likeCount = post.likesUser.length;
+          post.save();
+        });
+      } else {
+        const newpost = post.likesUser.filter(
+          (e) => e.toString() !== likesFound._id.toString()
+        );
+        await Post.updateOne(
+          { _id: post._id },
+          {
+            $set: { likesUser: newpost, likeCount: newpost.length },
+            $currentDate: { lastModified: true },
+          },
+          function (err, result) {
+            if (err) throw err;
+          }
+        );
+        await likesModel.remove({ _id: likesFound._id });
+      }
+    }
+    res.json({ status: true, data: post });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ status: false, message: "Server Error", errors: e });
+  }
+});
+
+router.patch("/comments/:post_id", auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.post_id);
+    if (!post) return res.json({ status: false, message: "No post found" });
+    if (!req.user.user.alumni) {
+      const likesFound = await likesModel.findOne({
+        $and: [{ user: req.user.user.id }, { post: req.params.post_id }],
+      });
+
+      if (!likesFound) {
+        console.log(req.user.user.id, req.params.post_id);
+
+        const newLike = new likesModel({
+          user: req.user.user.id,
+          alumni: null,
+          post: req.params.post_id,
+        });
+
+        newLike.save().then((response) => {
+          post.likesUser.unshift(response._id);
+          post.likeCount = post.likesUser.length;
+          post.save();
+        });
+      } else {
+        const newpost = post.likesUser.filter(
+          (e) => e.toString() !== likesFound._id.toString()
+        );
+        await Post.updateOne(
+          { _id: post._id },
+          {
+            $set: { likesUser: newpost, likeCount: newpost.length },
+            $currentDate: { lastModified: true },
+          },
+          function (err, result) {
+            if (err) throw err;
+            console.log(likesFound._id, ObjectId(likesFound._id));
+            // likesModel.remove({ _id: ObjectId(likesFound._id) });
+          }
+        );
+        await likesModel.remove({ _id: likesFound._id });
       }
     } else {
       const likesFound = await likesModel.findOne({
@@ -119,24 +218,26 @@ router.patch("/like/:post_id", auth, async (req, res) => {
         });
 
         newLike.save().then((response) => {
-          post.likesAlumni.unshift(response._id);
-          post.likeCount = post.likesUser.length + post.likesAlumni.length;
+          post.likesUser.unshift(response._id);
+          post.likeCount = post.likesUser.length;
           post.save();
         });
-
-        // const newpost = post.likes.filter(
-        //   (e) => e.toString() !== likesFound._id.toString()
-        // );
-
-        // post.likes = newpost;
-        // post.likeCount = newpost.length;
-
-        // await post.save().then((res) => {
-        //   console.log(likesFound._id);
-        //   if (res) likesModel.remove({ _id: ObjectId(likesFound._id) });
-        // });
       } else {
-        console.log(likesFound);
+        const newpost = post.likesUser.filter(
+          (e) => e.toString() !== likesFound._id.toString()
+        );
+        await Post.updateOne(
+          { _id: post._id },
+          {
+            $set: { likesUser: newpost, likeCount: newpost.length },
+            $currentDate: { lastModified: true },
+          },
+          function (err, result) {
+            if (err) throw err;
+            console.log(likesFound._id);
+          }
+        );
+        await likesModel.remove({ _id: likesFound._id });
       }
     }
     res.json({ status: true, data: post });
@@ -157,7 +258,6 @@ router.post("/add", alumniAuth, async (req, res) => {
       title: req.body.title,
       discription: req.body.discription,
       status: true,
-      likesAlumni: [],
       likesUser: [],
       likeCount: null,
       MediaUrl: req.body.MediaUrl,
