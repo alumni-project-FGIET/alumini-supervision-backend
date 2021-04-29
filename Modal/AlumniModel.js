@@ -15,30 +15,35 @@ const alumnischema = Schema(
       required: true,
       unique: true,
     },
+    MediaUrl: {
+      type: String,
+    },
     phoneNo: {
       type: String,
       required: true,
     },
+
     verified: {
       type: Boolean,
     },
-   
+
     college: {
       required: true,
       type: Schema.Types.ObjectId,
       ref: "colleges",
     },
+
     rollNo: {
       type: String,
       required: true,
     },
+
     alumni: {
       type: Boolean,
-      required: true,
     },
+
     jobs: [
       {
-        text: String,
         from: {
           type: Date,
           required: true,
@@ -63,23 +68,28 @@ const alumnischema = Schema(
         },
       },
     ],
+
     jobProvider: {
       type: String,
-      required: true,
     },
+
     verifyToken: {
       type: String,
     },
+
     password: {
       type: String,
       required: true,
     },
+
     status: {
       type: Boolean,
     },
+
     resetPasswordToken: {
       type: String,
     },
+
     resetPasswordExpires: {
       type: String,
     },
@@ -89,4 +99,4 @@ const alumnischema = Schema(
   }
 );
 
-module.exports = mongoose.model("alumni", alumnischema);
+module.exports = mongoose.model("alumnis", alumnischema);

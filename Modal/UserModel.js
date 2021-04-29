@@ -12,8 +12,8 @@ const userSchema = Schema(
       type: String,
       required: true,
     },
-    verified:{
-      type:Boolean
+    verified: {
+      type: Boolean,
     },
     firstName: {
       type: String,
@@ -21,12 +21,14 @@ const userSchema = Schema(
     },
     lastName: {
       type: String,
-   
+    },
+    MediaUrl: {
+      type: String,
     },
     college: {
       required: true,
       type: Schema.Types.ObjectId,
-      ref:'colleges'
+      ref: "colleges",
     },
     rollNo: {
       type: String,
@@ -35,23 +37,24 @@ const userSchema = Schema(
     verifyToken: {
       type: String,
     },
-    password:{
+    password: {
       type: String,
-      required: true,  
+      required: true,
     },
     status: {
       type: Boolean,
     },
-    resetPasswordToken:{
-      type:String
+    resetPasswordToken: {
+      type: String,
     },
-    resetPasswordExpires:{
-      type:String
-    }
+    resetPasswordExpires: {
+      type: String,
+    },
   },
   {
     timestamps: true,
   }
 );
+
 
 module.exports = mongoose.model("users", userSchema);
