@@ -267,6 +267,7 @@ router.post(
                 ramdomNo +
                 "</h1></div>",
             };
+
             smtpTransport.sendMail(mailOptions, function (err, info) {
               if (err) {
                 res.json({
@@ -311,9 +312,7 @@ router.post(
                 });
               }
             });
-          } else {
-            req.send({ status: false, err: "error" });
-          }
+          } else req.send({ status: false, err: "error" });
         } catch (err) {
           console.log(req.body);
           res.json({ status: false, message: "Alumni not added ", error: err });
