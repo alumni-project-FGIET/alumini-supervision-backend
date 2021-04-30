@@ -121,8 +121,9 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     } else {
-      const { name, email, password, phoneNo, title, status } = req.body;
       try {
+        const { name, email, password, phoneNo, title, status } = req.body;
+
         let admin = await Admin.findOne({ email: email });
         if (admin) {
           return res
@@ -140,8 +141,10 @@ router.post(
           password: passwordHased,
           title: title,
         });
+        newAdmin.save();
 
         const adminOne = Admin.findOne({ email: email });
+
         if (!adminOne) {
           return res.status(400).json({
             status: false,
@@ -149,7 +152,6 @@ router.post(
           });
         }
 
-        newAdmin.save();
         const payload = {
           user: {
             email: email,
@@ -162,11 +164,12 @@ router.post(
           if (token) {
             res.json({
               status: true,
+              message: "contact with your team and get verified",
               data: {
                 name: name,
                 admin: true,
                 email: email,
-                status: status,
+                status: false,
                 phoneNo: phoneNo,
                 title: title,
                 token: token,
@@ -175,7 +178,6 @@ router.post(
           }
         });
       } catch (err) {
-        console.log(req.body);
         res.json({ status: false, message: "Admin not added", error: err });
       }
     }
