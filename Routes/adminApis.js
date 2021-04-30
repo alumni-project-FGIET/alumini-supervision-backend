@@ -121,8 +121,8 @@ router.post(
       try {
         const { name, email, password, phoneNo, title, status } = req.body;
 
-        let admin = await Admin.findOne({ email: email });
-        if (admin) {
+        const admin = await Admin.findOne({ email: email });
+        if (!admin) {
           return res
             .status(400)
             .json({ errors: { message: "admin already exists" } });
