@@ -114,69 +114,67 @@ router.post(
     ).isLength({ min: 6 }),
   ],
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    } else {
-      try {
-        const { name, email, password, phoneNo, title, status } = req.body;
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const { name, email, password, phoneNo, title } = req.body;
+      const admin = await Admin.findOne({ email });
+      console.log(admin, "no admin");
+      if (admin)
+        return res.json({ status: true, message: "Admin already exists" });
 
-        const admin = await Admin.findOne({ email: email });
-        if (!admin) {
-          return res
-            .status(400)
-            .json({ errors: { message: "admin already exists" } });
-        }
-        const salt = await bcrypt.genSalt(10);
-        const passwordHased = await bcrypt.hash(password, salt);
-        const newAdmin = await new Admin({
-          name: name,
-          email: email,
-          admin: true,
+      const salt = await bcrypt.genSalt(10);
+      const passwordHased = await bcrypt.hash(password, salt);
+
+      const newAdmin = new Admin({
+        name: name,
+        email: email,
+        admin: true,
+        status: false,
+        phoneNo: phoneNo,
+        password: passwordHased,
+        title: title,
+      });
+      await newAdmin.save();
+
+      const adminOne = Admin.findOne({ email: email });
+
+      if (!adminOne) {
+        return res.status(400).json({
           status: false,
-          phoneNo: phoneNo,
-          password: passwordHased,
-          title: title,
+          errors: { message: "Admin already exists" },
         });
-        newAdmin.save();
+      }
 
-        const adminOne = Admin.findOne({ email: email });
+      const payload = {
+        user: {
+          email: email,
+          id: adminOne._id,
+        },
+      };
 
-        if (!adminOne) {
-          return res.status(400).json({
-            status: false,
-            errors: { message: "Admin already exists" },
+      jwt.sign(payload, process.env.JWT, function (err, token) {
+        console.log(err, token);
+        if (token) {
+          res.json({
+            status: true,
+            message: "contact with your team and get verified",
+            data: {
+              name: name,
+              admin: true,
+              email: email,
+              status: false,
+              phoneNo: phoneNo,
+              title: title,
+              token: token,
+            },
           });
         }
-
-        const payload = {
-          user: {
-            email: email,
-            id: adminOne._id,
-          },
-        };
-
-        jwt.sign(payload, process.env.JWT, function (err, token) {
-          console.log(err, token);
-          if (token) {
-            res.json({
-              status: true,
-              message: "contact with your team and get verified",
-              data: {
-                name: name,
-                admin: true,
-                email: email,
-                status: false,
-                phoneNo: phoneNo,
-                title: title,
-                token: token,
-              },
-            });
-          }
-        });
-      } catch (err) {
-        res.json({ status: false, message: "Admin not added", error: err });
-      }
+      });
+    } catch (err) {
+      res.json({ status: false, message: "Admin not added", error: err });
     }
   }
 );
