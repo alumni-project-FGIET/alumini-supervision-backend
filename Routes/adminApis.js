@@ -340,19 +340,18 @@ router.post("/forgetPassword", async (req, res) => {
     const tokenValue = crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
       console.log(token, err);
-      const admin = Admin.findOne({ email: req.body.email });
-      if (!admin)
-        return res
-          .status(400)
-          .json({ status: false, message: "No admin found" });
-      if (admin.status === false)
-        return res
-          .status(400)
-          .json({ status: false, message: "Admin is blocked " });
-      admin.resetPasswordToken = token;
-      admin.resetPasswordExpires = Date.now(); // 1 hour
-      admin.save(function (err) {
-        res.json({ status: true, data: token });
+      Admin.findOne({ email: req.body.email }).then((response) => {
+        console.log(response);
+        if (!response)
+          return res.json({ status: false, message: "No admin found" });
+        if (!response.status)
+          return res.json({ status: false, message: "Admin is blocked " });
+        response.resetPasswordToken = token;
+        response.resetPasswordExpires = Date.now(); // 1 hour
+        response.save().then((ress) => {
+          console.log(ress);
+          return res.json({ status: true, data: ress.resetPasswordToken });
+        });
       });
     });
   } catch (err) {
