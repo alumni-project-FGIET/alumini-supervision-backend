@@ -337,20 +337,22 @@ router.delete("/:adminId", adminAuth, async (req, res) => {
 
 router.post("/forgetPassword", async (req, res) => {
   try {
-    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+    const tokenValue = crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
       console.log(token, err);
-      Admin.findOne({ email: req.body.email }, function (err, admin) {
-        if (!admin) {
-          return res
-            .status(400)
-            .json({ status: false, message: "No admin found" });
-        }
-        admin.resetPasswordToken = token;
-        admin.resetPasswordExpires = Date.now(); // 1 hour
-        admin.save(function (err) {
-          res.json({ status: true, data: token });
-        });
+      const admin = Admin.findOne({ email: req.body.email });
+      if (!admin)
+        return res
+          .status(400)
+          .json({ status: false, message: "No admin found" });
+      if (!admin.status)
+        return res
+          .status(400)
+          .json({ status: false, message: "Admin is blocked " });
+      admin.resetPasswordToken = token;
+      admin.resetPasswordExpires = Date.now(); // 1 hour
+      admin.save(function (err) {
+        res.json({ status: true, data: token });
       });
     });
   } catch (err) {
