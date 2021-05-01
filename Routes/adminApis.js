@@ -345,7 +345,7 @@ router.post("/forgetPassword", async (req, res) => {
         return res
           .status(400)
           .json({ status: false, message: "No admin found" });
-      if (!admin.status)
+      if (admin.status === false)
         return res
           .status(400)
           .json({ status: false, message: "Admin is blocked " });
