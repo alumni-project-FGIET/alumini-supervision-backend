@@ -365,13 +365,13 @@ router.post("/reset", async (req, res) => {
       resetPasswordToken: req.body.resetPasswordToken,
     });
     if (!admin)
-      return res.status(200).json({
-        status: true,
+      return res.json({
+        status: false,
         message: "No admin is found with this token",
       });
     if (!admin.resetPasswordToken)
-      return res.status(200).json({
-        status: true,
+      return res.json({
+        status: false,
         message: "password reset link is invalid or has expired",
       });
 
