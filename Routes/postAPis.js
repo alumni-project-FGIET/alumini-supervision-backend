@@ -41,10 +41,9 @@ router.get("/get-likes", auth, async (req, res) => {
 
 router.get("/get", auth, async (req, res) => {
   try {
-    console.log(req.user);
     const postList = await Post.find({ status: true })
       .select(
-        "name status title discription MediaUrl likesUser likeCount alumni date createdAt updatedAt"
+        "name  title discription MediaUrl likesUser likeCount alumni date createdAt updatedAt"
       )
       .populate("alumni", "firstName lastName alumni MediaUrl college");
 
@@ -55,11 +54,10 @@ router.get("/get", auth, async (req, res) => {
 });
 
 router.get("/:postId", auth, async (req, res) => {
-  console.log(req.params.postId);
   try {
     const postDet = await Post.findById(req.params.postId)
       .select(
-        "name status title discription MediaUrl likesUser likeCount alumni date createdAt updatedAt"
+        "name  title discription MediaUrl likesUser likeCount alumni date createdAt updatedAt"
       )
       .populate("alumni", "firstName lastName email MediaUrl college")
       .populate({
@@ -168,79 +166,77 @@ router.patch("/comments/:post_id", auth, async (req, res) => {
     const post = await Post.findById(req.params.post_id);
     if (!post) return res.json({ status: false, message: "No post found" });
     if (!req.user.user.alumni) {
-      const likesFound = await likesModel.findOne({
-        $and: [{ user: req.user.user.id }, { post: req.params.post_id }],
-      });
+      
+    //   const commen = await likesModel.findOne({
+    //     $and: [{ user: req.user.user.id }, { post: req.params.post_id }],
+    //   });
+    //   if (!likesFound) {
+    //     console.log(req.user.user.id, req.params.post_id);
+    //     const newLike = new likesModel({
+    //       user: req.user.user.id,
+    //       alumni: null,
+    //       post: req.params.post_id,
+    //     });
+    //     newLike.save().then((response) => {
+    //       post.likesUser.unshift(response._id);
+    //       post.likeCount = post.likesUser.length;
+    //       post.save();
+    //     });
+    //   } else {
+    //     const newpost = post.likesUser.filter(
+    //       (e) => e.toString() !== likesFound._id.toString()
+    //     );
+    //     await Post.updateOne(
+    //       { _id: post._id },
+    //       {
+    //         $set: { likesUser: newpost, likeCount: newpost.length },
+    //         $currentDate: { lastModified: true },
+    //       },
+    //       function (err, result) {
+    //         if (err) throw err;
+    //         console.log(likesFound._id, ObjectId(likesFound._id));
+    //         // likesModel.remove({ _id: ObjectId(likesFound._id) });
+    //       }
+    //     );
+    //     await likesModel.remove({ _id: likesFound._id });
+    //   }
+    // } else {
+    //   const likesFound = await likesModel.findOne({
+    //     $and: [{ alumni: req.user.user.id }, { post: req.params.post_id }],
+    //   });
 
-      if (!likesFound) {
-        console.log(req.user.user.id, req.params.post_id);
+    //   if (!likesFound) {
+    //     console.log(req.user.user.id, req.params.post_id);
+    //     const newLike = new likesModel({
+    //       user: null,
+    //       alumni: req.user.user.id,
+    //       post: req.params.post_id,
+    //     });
 
-        const newLike = new likesModel({
-          user: req.user.user.id,
-          alumni: null,
-          post: req.params.post_id,
-        });
-
-        newLike.save().then((response) => {
-          post.likesUser.unshift(response._id);
-          post.likeCount = post.likesUser.length;
-          post.save();
-        });
-      } else {
-        const newpost = post.likesUser.filter(
-          (e) => e.toString() !== likesFound._id.toString()
-        );
-        await Post.updateOne(
-          { _id: post._id },
-          {
-            $set: { likesUser: newpost, likeCount: newpost.length },
-            $currentDate: { lastModified: true },
-          },
-          function (err, result) {
-            if (err) throw err;
-            console.log(likesFound._id, ObjectId(likesFound._id));
-            // likesModel.remove({ _id: ObjectId(likesFound._id) });
-          }
-        );
-        await likesModel.remove({ _id: likesFound._id });
-      }
-    } else {
-      const likesFound = await likesModel.findOne({
-        $and: [{ alumni: req.user.user.id }, { post: req.params.post_id }],
-      });
-
-      if (!likesFound) {
-        console.log(req.user.user.id, req.params.post_id);
-        const newLike = new likesModel({
-          user: null,
-          alumni: req.user.user.id,
-          post: req.params.post_id,
-        });
-
-        newLike.save().then((response) => {
-          post.likesUser.unshift(response._id);
-          post.likeCount = post.likesUser.length;
-          post.save();
-        });
-      } else {
-        const newpost = post.likesUser.filter(
-          (e) => e.toString() !== likesFound._id.toString()
-        );
-        await Post.updateOne(
-          { _id: post._id },
-          {
-            $set: { likesUser: newpost, likeCount: newpost.length },
-            $currentDate: { lastModified: true },
-          },
-          function (err, result) {
-            if (err) throw err;
-            console.log(likesFound._id);
-          }
-        );
-        await likesModel.remove({ _id: likesFound._id });
-      }
+    //     newLike.save().then((response) => {
+    //       post.likesUser.unshift(response._id);
+    //       post.likeCount = post.likesUser.length;
+    //       post.save();
+    //     });
+    //   } else {
+    //     const newpost = post.likesUser.filter(
+    //       (e) => e.toString() !== likesFound._id.toString()
+    //     );
+    //     await Post.updateOne(
+    //       { _id: post._id },
+    //       {
+    //         $set: { likesUser: newpost, likeCount: newpost.length },
+    //         $currentDate: { lastModified: true },
+    //       },
+    //       function (err, result) {
+    //         if (err) throw err;
+    //         console.log(likesFound._id);
+    //       }
+    //     );
+    //     await likesModel.remove({ _id: likesFound._id });
+    //   }
     }
-    res.json({ status: true, data: post });
+    // res.json({ status: true, data: post });
   } catch (e) {
     console.log(e);
     res.status(500).json({ status: false, message: "Server Error", errors: e });

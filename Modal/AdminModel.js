@@ -26,6 +26,9 @@ const adminSchema = Schema(
     title: {
       type: String,
     },
+    MediaUrl: {
+      type: String,
+    },
     admin: {
       type: Boolean,
     },

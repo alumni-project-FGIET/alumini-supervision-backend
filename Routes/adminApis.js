@@ -245,6 +245,29 @@ router.patch("/updatePassword/:adminId", adminAuth, async (req, res) => {
   }
 });
 
+router.patch("/media/:adminId", auth, async (req, res) => {
+  console.log(req.params.adminId);
+  try {
+    const { MediaUrl } = req.body;
+    const changeUser = await Admin.findOneAndUpdate(
+      {
+        _id: req.params.userId,
+      },
+      {
+        $set: {
+          MediaUrl: MediaUrl,
+        },
+      },
+      { upsert: true, returnNewDocument: true }
+    );
+    res.json({
+      status: true,
+    });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
 //DELETE THE College BY ID
 router.delete("/:adminId", adminAuth, async (req, res) => {
   console.log(req.params.adminId);
