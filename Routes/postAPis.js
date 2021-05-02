@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const likesModel = require("../Modal/likesModel");
 const UserModel = require("../Modal/UserModel");
 var ObjectId = require("mongodb").ObjectID;
+const CommentModel = require("../Modal/CommentModel");
 
 router.get("/get-likes", auth, async (req, res) => {
   try {
@@ -166,75 +167,47 @@ router.patch("/comments/:post_id", auth, async (req, res) => {
     const post = await Post.findById(req.params.post_id);
     if (!post) return res.json({ status: false, message: "No post found" });
     if (!req.user.user.alumni) {
-      
-    //   const commen = await likesModel.findOne({
-    //     $and: [{ user: req.user.user.id }, { post: req.params.post_id }],
-    //   });
-    //   if (!likesFound) {
-    //     console.log(req.user.user.id, req.params.post_id);
-    //     const newLike = new likesModel({
-    //       user: req.user.user.id,
-    //       alumni: null,
-    //       post: req.params.post_id,
-    //     });
-    //     newLike.save().then((response) => {
-    //       post.likesUser.unshift(response._id);
-    //       post.likeCount = post.likesUser.length;
-    //       post.save();
-    //     });
-    //   } else {
-    //     const newpost = post.likesUser.filter(
-    //       (e) => e.toString() !== likesFound._id.toString()
-    //     );
-    //     await Post.updateOne(
-    //       { _id: post._id },
-    //       {
-    //         $set: { likesUser: newpost, likeCount: newpost.length },
-    //         $currentDate: { lastModified: true },
-    //       },
-    //       function (err, result) {
-    //         if (err) throw err;
-    //         console.log(likesFound._id, ObjectId(likesFound._id));
-    //         // likesModel.remove({ _id: ObjectId(likesFound._id) });
-    //       }
-    //     );
-    //     await likesModel.remove({ _id: likesFound._id });
-    //   }
-    // } else {
-    //   const likesFound = await likesModel.findOne({
-    //     $and: [{ alumni: req.user.user.id }, { post: req.params.post_id }],
-    //   });
-
-    //   if (!likesFound) {
-    //     console.log(req.user.user.id, req.params.post_id);
-    //     const newLike = new likesModel({
-    //       user: null,
-    //       alumni: req.user.user.id,
-    //       post: req.params.post_id,
-    //     });
-
-    //     newLike.save().then((response) => {
-    //       post.likesUser.unshift(response._id);
-    //       post.likeCount = post.likesUser.length;
-    //       post.save();
-    //     });
-    //   } else {
-    //     const newpost = post.likesUser.filter(
-    //       (e) => e.toString() !== likesFound._id.toString()
-    //     );
-    //     await Post.updateOne(
-    //       { _id: post._id },
-    //       {
-    //         $set: { likesUser: newpost, likeCount: newpost.length },
-    //         $currentDate: { lastModified: true },
-    //       },
-    //       function (err, result) {
-    //         if (err) throw err;
-    //         console.log(likesFound._id);
-    //       }
-    //     );
-    //     await likesModel.remove({ _id: likesFound._id });
-    //   }
+      const newcomment = new CommentModel({
+        user: req.user.user.id,
+        alumni: null,
+        comment: req.body.comment,
+        post: req.params.post_id,
+      });
+      newcomment.save().then((response) => {
+        post.comments.unshift(response._id);
+        post.commentCount = post.commentUser.length;
+        post.save();
+      });
+    }
+    {
+      //     console.log(req.user.user.id, req.params.post_id);
+      //     const newLike = new likesModel({
+      //       user: null,
+      //       alumni: req.user.user.id,
+      //       post: req.params.post_id,
+      //     });
+      //     newLike.save().then((response) => {
+      //       post.likesUser.unshift(response._id);
+      //       post.likeCount = post.likesUser.length;
+      //       post.save();
+      //     });
+      //   } else {
+      //     const newpost = post.likesUser.filter(
+      //       (e) => e.toString() !== likesFound._id.toString()
+      //     );
+      //     await Post.updateOne(
+      //       { _id: post._id },
+      //       {
+      //         $set: { likesUser: newpost, likeCount: newpost.length },
+      //         $currentDate: { lastModified: true },
+      //       },
+      //       function (err, result) {
+      //         if (err) throw err;
+      //         console.log(likesFound._id);
+      //       }
+      //     );
+      //     await likesModel.remove({ _id: likesFound._id });
+      //   }
     }
     // res.json({ status: true, data: post });
   } catch (e) {

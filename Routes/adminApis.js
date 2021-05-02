@@ -245,7 +245,7 @@ router.patch("/updatePassword/:adminId", adminAuth, async (req, res) => {
   }
 });
 
-router.patch("/media/:adminId", auth, async (req, res) => {
+router.patch("/media/:adminId", adminAuth, async (req, res) => {
   console.log(req.params.adminId);
   try {
     const { MediaUrl } = req.body;
