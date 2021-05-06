@@ -13,7 +13,7 @@ const crypto = require("crypto");
 router.get("/get", adminAuth, async (req, res) => {
   try {
     const adminList = await Admin.find().select(
-      "name email admin phoneNo title createdAt updatedAt"
+      "name email admin phoneNo title status createdAt updatedAt"
     );
     res.json({ status: true, data: adminList });
   } catch (err) {
@@ -26,7 +26,7 @@ router.get("/get/:adminId", adminAuth, async (req, res) => {
   console.log(req.params.adminId);
   try {
     const adminDet = await Admin.findById(req.params.adminId).select(
-      "name email admin phoneNo title createdAt updatedAt"
+      "name email admin phoneNo title status createdAt updatedAt"
     );
     res.json({ status: true, data: adminDet });
   } catch (err) {

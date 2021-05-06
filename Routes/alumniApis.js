@@ -160,7 +160,7 @@ router.post(
       } else {
         res.json({
           status: false,
-          message: "alumni is blocked please contact other alumni",
+          message: "alumni is blocked please contact with admin",
         });
       }
     } catch (err) {
@@ -587,7 +587,7 @@ router.post("/reset", async (req, res) => {
 //   }).then((alumni) => {
 //     if (alumni.resetPasswordToken === null) {
 //       console.error("password reset link is invalid or has expired");
-//       res.status(403).json({
+//       res.json({
 //         status: true,
 //         data: "password reset link is invalid or has expired",
 //       });
