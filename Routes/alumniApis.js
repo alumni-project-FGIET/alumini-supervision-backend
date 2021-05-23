@@ -12,13 +12,14 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const auth = require("../Middleware/auth");
 const adminAuth = require("../Middleware/adminAuth");
+const alumniAuth = require("../Middleware/alumniAuth");
 
 //GET ALL College LIST
 router.get("/get", auth, async (req, res) => {
   try {
     const alumniList = await Alumni.find({ status: true })
       .select(
-        "firstName lastName email phoneNo status MediaUrl college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount status verified MediaUrl college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -33,12 +34,29 @@ router.get("/get", auth, async (req, res) => {
 router.get("/get/:alumniId", auth, async (req, res) => {
   console.log(req.params.alumniId);
   try {
-    const postDet = await Alumni.find({
+    const pos11tDet = await Alumni.find({
       _id: req.params.alumniId,
       status: true,
     })
       .select(
-        "firstName lastName email phoneNo MediaUrl status college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount verified MediaUrl status college jobs jobProvider createdAt"
+      )
+      .populate("college")
+      .populate("jobLocation");
+    res.json({ status: true, data: postDet });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/profile", alumniAuth, async (req, res) => {
+  try {
+    const postDet = await Alumni.find({
+      _id: req.user.user.email,
+      status: true,
+    })
+      .select(
+        "firstName lastName email phoneNo MediaUrl posts postcount verified status college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -52,7 +70,7 @@ router.get("/admin-get", adminAuth, async (req, res) => {
   try {
     const alumniList = await Alumni.find()
       .select(
-        "firstName lastName email phoneNo MediaUrl status college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount verified MediaUrl status college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -68,7 +86,7 @@ router.get("/admin-get/:alumniId", adminAuth, async (req, res) => {
   try {
     const postDet = await Alumni.find({ _id: req.params.alumniId })
       .select(
-        "firstName lastName email phoneNo status MediaUrl college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount verified status MediaUrl college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -243,6 +261,7 @@ router.post(
             verified: false,
             college: collegeId,
             verifyToken: ramdomNo,
+            posts: [],
             password: passwordHased,
           });
 

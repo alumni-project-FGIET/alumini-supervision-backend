@@ -10,6 +10,7 @@ const UserModel = require("../Modal/UserModel");
 var ObjectId = require("mongodb").ObjectID;
 const CommentModel = require("../Modal/CommentModel");
 const repliesModel = require("../Modal/repliesModel");
+const AlumniModel = require("../Modal/AlumniModel");
 
 router.get("/likes-Comment/:postId", auth, async (req, res) => {
   try {
@@ -324,8 +325,7 @@ router.patch("/reply/:comment_id", auth, async (req, res) => {
 router.post("/add", alumniAuth, async (req, res) => {
   try {
     const userId = req.user.user.id;
-
-    const alumniData = await Alumni.find({ _id: userId, status: true });
+    const alumniData = await Alumni.findOne({ _id: userId, status: true });
     if (!alumniData)
       return res.json({
         status: false,
@@ -341,6 +341,10 @@ router.post("/add", alumniAuth, async (req, res) => {
       MediaUrl: req.body.MediaUrl,
     });
     newPost.save().then((data) => {
+      alumniData.posts.unshift(data._id);
+      alumniData.postcount = alumniData.posts.length;
+      console.log("data", data);
+      alumniData.save();
       res.json({
         status: true,
         data: data,
@@ -482,6 +486,13 @@ router.patch("/delete/:postId", auth, async (req, res) => {
         status: false,
         message: "Post not or no auth to delete found",
       });
+    const alumniData = await Alumni.findOne({
+      _id: req.user.user.id,
+      status: true,
+    });
+    alumniData.posts.shift(req.params.postId);
+    alumniData.postcount = alumniData.posts.length;
+    alumniData.save();
     await CommentModel.deleteMany({ post: req.params.postId });
     await likesModel.deleteMany({ post: req.params.postId });
     await repliesModel.deleteMany({ post: req.params.postId });
@@ -493,6 +504,7 @@ router.patch("/delete/:postId", auth, async (req, res) => {
         });
     });
   } catch (err) {
+    console.log(err);
     res.json({ status: false, message: "Something happens worng" });
   }
 });

@@ -38,6 +38,19 @@ router.get("/get/:userId", auth, async (req, res) => {
   }
 });
 
+router.get("/profile", auth, async (req, res) => {
+  try {
+    const postDet = await User.find({ _id: req.user.user.email, status: true })
+      .select(
+        "firstName lastName email  MediaUrl phoneNo status college createdAt"
+      )
+      .populate("college");
+    res.json({ status: true, data: postDet });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
 router.get("/admin-get", adminAuth, async (req, res) => {
   try {
     const userList = await User.find()
