@@ -8,7 +8,7 @@ const adminAuth = require("../Middleware/adminAuth");
 const auth = require("../Middleware/auth");
 //GET ALL College LIST
 
-router.get("/get", auth, async (req, res) => {
+router.get("/get", async (req, res) => {
   try {
     const collegeList = await College.find({ status: true })
       .select("name status collegeCode city createdAt updatedAt")
