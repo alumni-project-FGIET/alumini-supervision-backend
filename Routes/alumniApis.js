@@ -538,7 +538,7 @@ router.post("/forgetPassword", async (req, res) => {
         });
         var ramdomNo = Math.floor(100000 + Math.random() * 900000);
         ramdomNo = String(ramdomNo);
-        ramdomNo = ramdomNo.substring(0, 6);
+        ramdomNo = ramdomNo.substring(0, 4);
         var mailOptions = {
           to: req.body.email,
           from: "singhnitesh9001@gmail.com",
