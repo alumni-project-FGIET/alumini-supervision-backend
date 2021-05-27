@@ -40,11 +40,13 @@ router.get("/get/:userId", auth, async (req, res) => {
 
 router.get("/profile", auth, async (req, res) => {
   try {
-    const postDet = await User.find({ _id: req.user.user.email, status: true })
+    console.log(req.user.user);
+    const postDet = await User.find({ _id: req.user.user.id, status: true })
       .select(
         "firstName lastName email  MediaUrl phoneNo status college createdAt"
       )
       .populate("college");
+    console.log(postDet);
     res.json({ status: true, data: postDet });
   } catch (err) {
     res.json({ message: err });
@@ -464,12 +466,10 @@ router.post("/verify", auth, async (req, res) => {
 
 router.post("/forgetPassword", async (req, res) => {
   try {
-    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+    crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
-      console.log(token, err);
 
       User.findOne({ email: req.body.email }).then((response) => {
-        console.log(response);
         if (!response)
           return res.json({ status: false, message: "No user found" });
         if (!response.status)
