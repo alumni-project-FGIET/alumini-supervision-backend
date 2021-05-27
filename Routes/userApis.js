@@ -464,46 +464,56 @@ router.post("/verify", auth, async (req, res) => {
 
 router.post("/forgetPassword", async (req, res) => {
   try {
-    User.findOne({ email: req.body.email }).then((response) => {
-      console.log(response);
-      if (!response)
-        return res.json({ status: false, message: "No user found" });
-      if (!response.status)
-        return res.json({ status: false, message: "User is blocked " });
+    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+      var token = buf.toString("hex");
+      console.log(token, err);
 
-      var smtpTransport = nodemailer.createTransport({
-        service: "Gmail",
-        auth: {
-          user: "singhnitesh9001@gmail.com",
-          pass: `${process.env.EMAIL_PASSWORD}`,
-        },
+      User.findOne({ email: req.body.email }).then((response) => {
+        console.log(response);
+        if (!response)
+          return res.json({ status: false, message: "No user found" });
+        if (!response.status)
+          return res.json({ status: false, message: "User is blocked " });
+
+        var smtpTransport = nodemailer.createTransport({
+          service: "Gmail",
+          auth: {
+            user: "singhnitesh9001@gmail.com",
+            pass: `${process.env.EMAIL_PASSWORD}`,
+          },
+        });
+        var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+        ramdomNo = String(ramdomNo);
+        ramdomNo = ramdomNo.substring(0, 6);
+        var mailOptions = {
+          to: req.body.email,
+          from: "singhnitesh9001@gmail.com",
+          subject: "Verify Account",
+          html:
+            "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+            ramdomNo +
+            "</h1></div>",
+        };
+        smtpTransport.sendMail(mailOptions, function (err) {
+          if (!err) {
+            res.json({ status: true, message: "Email Send to mail" });
+          } else {
+            res.json({ status: false, message: "Email not Send to mail" });
+          }
+        });
+        response.resetPasswordToken = token;
+        response.verifyToken = ramdomNo;
+        response.resetPasswordExpires = Date.now(); // 1 hour
+        response.save().then((ress) => {
+          console.log(ress);
+          return res.json({
+            status: true,
+            data: {
+              resetPasswordToken: ress.resetPasswordToken,
+            },
+          });
+        });
       });
-      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-      ramdomNo = String(ramdomNo);
-      ramdomNo = ramdomNo.substring(0, 6);
-      var mailOptions = {
-        to: req.body.email,
-        from: "singhnitesh9001@gmail.com",
-        subject: "Verify Account",
-        html:
-          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-          ramdomNo +
-          "</h1></div>",
-      };
-      smtpTransport.sendMail(mailOptions, function (err) {
-        if (!err) {
-          res.json({ status: true, message: "Email Send to mail" });
-        } else {
-          res.json({ status: false, message: "Email not Send to mail" });
-        }
-      });
-      response.resetPasswordToken = ramdomNo;
-      response.resetPasswordExpires = Date.now(); // 1 hour
-      response.save().then((ress) => {
-        console.log(ress);
-        return res.json({ status: true, data: ress.resetPasswordToken });
-      });
-      // });
     });
   } catch (err) {
     res.json({ status: false, message: err });
@@ -525,7 +535,12 @@ router.post("/reset", async (req, res) => {
         status: false,
         message: "password reset link is invalid or has expired",
       });
-
+    console.log(user);
+    if (req.body.otpEmail !== user.verifyToken)
+      return res.json({
+        status: false,
+        message: "otp is invalid or has expired",
+      });
     bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(req.body.password, salt, (err, hash) => {
         if (err) throw err;
