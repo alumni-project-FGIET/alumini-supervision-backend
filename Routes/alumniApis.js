@@ -548,6 +548,7 @@ router.post("/forgetPassword", async (req, res) => {
             ramdomNo +
             "</h1></div>",
         };
+
         smtpTransport.sendMail(mailOptions, function (err) {
           if (!err) {
             res.json({ status: true, message: "Email Send to mail" });
@@ -561,9 +562,7 @@ router.post("/forgetPassword", async (req, res) => {
         response.save().then((ress) => {
           return res.json({
             status: true,
-            data: {
-              resetPasswordToken: ress.resetPasswordToken,
-            },
+            data: ress.resetPasswordToken,
           });
         });
       });

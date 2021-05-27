@@ -508,9 +508,7 @@ router.post("/forgetPassword", async (req, res) => {
           console.log(ress);
           return res.json({
             status: true,
-            data: {
-              resetPasswordToken: ress.resetPasswordToken,
-            },
+            data: ress.resetPasswordToken,
           });
         });
       });
