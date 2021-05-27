@@ -519,7 +519,7 @@ router.delete("/delete/:alumniId", auth, async (req, res) => {
 
 router.post("/forgetPassword", async (req, res) => {
   try {
-    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+    crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
       console.log(token, err);
 

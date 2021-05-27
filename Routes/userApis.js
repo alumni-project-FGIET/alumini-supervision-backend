@@ -526,14 +526,8 @@ router.post("/reset", async (req, res) => {
     if (!user)
       return res.json({
         status: false,
-        message: "No user is found with this token",
+        message: "No user is found with this token or token is invalid",
       });
-    if (!user.resetPasswordToken)
-      return res.json({
-        status: false,
-        message: "password reset link is invalid or has expired",
-      });
-    console.log(user);
     if (req.body.otpEmail !== user.verifyToken)
       return res.json({
         status: false,
@@ -551,12 +545,12 @@ router.post("/reset", async (req, res) => {
             resetPasswordExpires: null,
           })
           .then(() => {
-            res.status(200).json({ status: true, message: "password updated" });
+            res.json({ status: true, message: "password updated" });
           });
       });
     });
   } catch (err) {
-    res.status(400).json({ status: false, message: "Some internal Issue" });
+    res.json({ status: false, message: "Some internal Issue" });
   }
 });
 
