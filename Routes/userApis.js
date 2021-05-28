@@ -388,58 +388,58 @@ router.delete("/delete/:userId", auth, async (req, res) => {
   }
 });
 
-// router.post("/send-email", async (req, res) => {
-//   const { email } = req.body;
-//   try {
-//     const userDet = await User.find({ email: email });
-//     if (userDet) {
-//       var smtpTransport = await nodemailer.createTransport({
-//         service: "Gmail",
-//         auth: {
-//           user: "singhnitesh9001@gmail.com",
-//           pass: `${process.env.EMAIL_PASSWORD}`,
-//         },
-//       });
-//       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-//       ramdomNo = String(ramdomNo);
-//       ramdomNo = ramdomNo.substring(0, 4);
-//       console.log(ramdomNo, userDet[0]._id);
-//       var mailOptions = {
-//         to: email,
-//         from: "singhnitesh9001@gmail.com",
-//         subject: "Verify Account",
-//         html:
-//           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-//           ramdomNo +
-//           "</h1></div>",
-//       };
-//       let info = await smtpTransport.sendMail(mailOptions, function (err) {
-//         console.log("err", err, userDet);
-//         if (!err) {
-//           res.json({ status: true, message: "Email Send to mail" });
-//         } else {
-//           res.json({ status: false, message: "Email not Send to mail" });
-//         }
-//       });
-//       const userData = {
-//         verifyToken: ramdomNo,
-//       };
-//       const changeuser = await User.findByIdAndUpdate(
-//         {
-//           _id: userDet[0]._id,
-//         },
-//         {
-//           $set: {
-//             verifyToken: ramdomNo,
-//           },
-//         },
-//         { upsert: true }
-//       );
-//     }
-//   } catch (err) {
-//     res.json({ message: err });
-//   }
-// });
+router.post("/send-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const userDet = await User.find({ email: email });
+    if (userDet) {
+      var smtpTransport = await nodemailer.createTransport({
+        service: "Gmail",
+        auth: {
+          user: "singhnitesh9001@gmail.com",
+          pass: `${process.env.EMAIL_PASSWORD}`,
+        },
+      });
+      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+      ramdomNo = String(ramdomNo);
+      ramdomNo = ramdomNo.substring(0, 4);
+      console.log(ramdomNo, userDet[0]._id);
+      var mailOptions = {
+        to: email,
+        from: "singhnitesh9001@gmail.com",
+        subject: "Verify Account",
+        html:
+          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+          ramdomNo +
+          "</h1></div>",
+      };
+      smtpTransport.sendMail(mailOptions, function (err) {
+        console.log("err", err, userDet);
+        if (!err) {
+          res.json({ status: true, message: "Email Send to mail" });
+        } else {
+          res.json({ status: false, message: "Email not Send to mail" });
+        }
+      });
+      const userData = {
+        verifyToken: ramdomNo,
+      };
+      const changeuser = await User.findByIdAndUpdate(
+        {
+          _id: userDet[0]._id,
+        },
+        {
+          $set: {
+            verifyToken: ramdomNo,
+          },
+        },
+        { upsert: true }
+      );
+    }
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
 
 router.post("/verify", auth, async (req, res) => {
   const { email, tokenValue } = req.body;
