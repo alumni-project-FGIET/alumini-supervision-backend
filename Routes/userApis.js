@@ -394,7 +394,8 @@ router.post("/send-email", async (req, res) => {
     const userDet = await User.find({ email: email });
     if (userDet) {
       var smtpTransport = await nodemailer.createTransport({
-        service: "Gmail",
+        host: "smtp.gmail.com",
+        port: 465,
         auth: {
           user: "singhnitesh9001@gmail.com",
           pass: `${process.env.EMAIL_PASSWORD}`,
