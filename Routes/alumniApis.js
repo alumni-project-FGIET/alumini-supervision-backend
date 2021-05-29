@@ -531,6 +531,8 @@ router.post("/forgetPassword", async (req, res) => {
           return res.json({ status: false, message: "Alumni is blocked " });
         var smtpTransport = nodemailer.createTransport({
           service: "Gmail",
+          host: "smtp.gmail.com",
+          port: 465,
           auth: {
             user: "singhnitesh9001@gmail.com",
             pass: `${process.env.EMAIL_PASSWORD}`,
