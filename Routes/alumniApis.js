@@ -30,9 +30,7 @@ router.get("/get", auth, async (req, res) => {
   }
 });
 
-//GET ONE College BY ID
 router.get("/get/:alumniId", auth, async (req, res) => {
-  console.log(req.params.alumniId);
   try {
     const pos11tDet = await Alumni.find({
       _id: req.params.alumniId,
@@ -49,10 +47,11 @@ router.get("/get/:alumniId", auth, async (req, res) => {
   }
 });
 
+//
 router.get("/profile", alumniAuth, async (req, res) => {
   try {
     const postDet = await Alumni.find({
-      _id: req.user.user.email,
+      _id: req.user.user.id,
       status: true,
     })
       .select(
@@ -62,10 +61,11 @@ router.get("/profile", alumniAuth, async (req, res) => {
       .populate("jobLocation");
     res.json({ status: true, data: postDet });
   } catch (err) {
-    res.json({ message: err });
+    res.json({ status: false, message: err });
   }
 });
 
+//
 router.get("/admin-get", adminAuth, async (req, res) => {
   try {
     const alumniList = await Alumni.find()
@@ -80,7 +80,7 @@ router.get("/admin-get", adminAuth, async (req, res) => {
   }
 });
 
-//GET ONE College BY ID
+//
 router.get("/admin-get/:alumniId", adminAuth, async (req, res) => {
   console.log(req.params.alumniId);
   try {
@@ -96,7 +96,7 @@ router.get("/admin-get/:alumniId", adminAuth, async (req, res) => {
   }
 });
 
-// GET College BY SEARCH
+//
 router.post("/search", auth, async (req, res) => {
   try {
     var regex = new RegExp(req.body.name, "i");
@@ -107,6 +107,7 @@ router.post("/search", auth, async (req, res) => {
   }
 });
 
+//
 router.post(
   "/login",
   [
@@ -253,7 +254,7 @@ router.post(
             email: email,
             phoneNo: phoneNo,
             alumni: true,
-            status: false,
+            status: true,
             rollNo: rollNo,
             MediaUrl: null,
             jobs: jobs,
@@ -615,70 +616,4 @@ router.post("/reset", async (req, res) => {
     res.status(400).json({ status: false, message: "Some internal Issue" });
   }
 });
-// router.post("/forgetPassword", async (req, res) => {
-//   try {
-//     const tokenValue = await crypto.randomBytes(20, function (err, buf) {
-//       var token = buf.toString("hex");
-//       console.log(token, err);
-//       Alumni.findOne({ email: req.body.email }, function (err, alumni) {
-//         if (!alumni) {
-//           console.log("wrong");
-//           return res.status(400).json({ errors: "No alumni found" });
-//         }
-//         alumni.resetPasswordToken = token;
-//         alumni.resetPasswordExpires = Date.now(); // 1 hour
-//         alumni.save(function (err) {
-//           res.json({ status: true, data: "reset Password is set Sucessfully" });
-//         });
-//       });
-//     });
-//     console.log(tokenValue);
-//   } catch (err) {
-//     res.json({ status: false, message: err });
-//   }
-// });
-
-// router.post("/resetPassword", async (req, res) => {
-//   await Alumni.findOne({
-//     resetPasswordToken: req.body.resetPasswordToken,
-//   }).then((alumni) => {
-//     if (alumni.resetPasswordToken === null) {
-//       console.error("password reset link is invalid or has expired");
-//       res.json({
-//         status: true,
-//         data: "password reset link is invalid or has expired",
-//       });
-//     } else if (alumni != null) {
-//       console.log("alumni exists in db");
-//       bcrypt.genSalt(10, (err, salt) => {
-//         bcrypt.hash(req.body.password, salt, (err, hash) => {
-//           if (err) throw err;
-//           alumni.password = hash;
-//           alumni
-//             .save()
-//             .then((alumni) => res.json(alumni))
-//             .catch((err) => console.log(err));
-//           alumni
-//             .updateOne({
-//               password: hash,
-//               resetPasswordToken: null,
-//               resetPasswordExpires: null,
-//             })
-//             .then(() => {
-//               console.log(`password updated ${alumni.password}`);
-//               res
-//                 .status(200)
-//                 .json({ status: true, message: "password updated" });
-//             });
-//         });
-//       });
-//     } else {
-//       console.error("no alumni exists in db to update");
-//       res
-//         .status(401)
-//         .json({ status: false, data: "no alumni exists in db to update" });
-//     }
-//   });
-// });
-
 module.exports = router;

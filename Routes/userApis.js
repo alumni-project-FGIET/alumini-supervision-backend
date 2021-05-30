@@ -49,7 +49,7 @@ router.get("/profile", auth, async (req, res) => {
     console.log(postDet);
     res.json({ status: true, data: postDet });
   } catch (err) {
-    res.json({ message: err });
+    res.json({ status: false, message: err });
   }
 });
 
@@ -469,9 +469,11 @@ router.post("/forgetPassword", async (req, res) => {
             pass: `${process.env.EMAIL_PASSWORD}`,
           },
         });
+
         var ramdomNo = Math.floor(100000 + Math.random() * 900000);
         ramdomNo = String(ramdomNo);
         ramdomNo = ramdomNo.substring(0, 4);
+
         var mailOptions = {
           to: req.body.email,
           from: "singhnitesh9001@gmail.com",
@@ -481,6 +483,7 @@ router.post("/forgetPassword", async (req, res) => {
             ramdomNo +
             "</h1></div>",
         };
+
         smtpTransport.sendMail(mailOptions, function (err) {
           if (!err) {
             res.json({ status: true, message: "Email Send to mail" });
