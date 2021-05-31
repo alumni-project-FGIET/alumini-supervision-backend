@@ -1,7 +1,6 @@
 var express = require("express");
 var app = express();
 var http = require("http");
-var dotenv = require("dotenv");
 var bodyParser = require("body-parser");
 const path = require("path");
 const cors = require("cors");
@@ -13,8 +12,11 @@ const admin = require("./Routes/adminApis");
 const alumni = require("./Routes/alumniApis");
 const upload = require("./Routes/DataUploads");
 const postApi = require("./Routes/postAPis");
+const feed = require("./Routes/connectionApis");
+const event = require("./Routes/eventApis");
 const morgan = require("morgan");
 const fs = require("fs");
+
 require("dotenv").config();
 
 const port = process.env.PORT || 5000;
@@ -40,7 +42,9 @@ app.use("/location", country);
 app.use("/user", user);
 app.use("/admin", admin);
 app.use("/alumni", alumni);
+app.use("/connect", feed);
 app.use("/post", postApi);
+app.use("/event", event);
 app.use("/", upload);
 server.listen(port, function () {
   console.log("listen to server .....", port);

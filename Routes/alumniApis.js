@@ -263,6 +263,8 @@ router.post(
             college: collegeId,
             verifyToken: ramdomNo,
             posts: [],
+            events: [],
+            eventscount: 0,
             password: passwordHased,
           });
 

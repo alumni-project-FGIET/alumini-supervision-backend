@@ -34,6 +34,15 @@ const alumnischema = Schema(
     postcount: {
       type: Number,
     },
+    events: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "events",
+      },
+    ],
+    eventscount: {
+      type: Number,
+    },
     college: {
       required: true,
       type: Schema.Types.ObjectId,

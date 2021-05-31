@@ -226,6 +226,8 @@ router.post(
         lastName: lastName,
         MediaUrl: null,
         verified: false,
+        events: [],
+        eventscount: 0,
         college: collegeId,
         password: passwordHased,
         verifyToken: ramdomNo,
@@ -250,7 +252,7 @@ router.post(
           ramdomNo +
           "</h1></div>",
       };
-      await smtpTransport.sendMail(mailOptions, function (error, info) {
+      smtpTransport.sendMail(mailOptions, function (error, info) {
         if (error) {
           console.log(error);
           return res.json({ status: false, message: "Email not Send to mail" });
@@ -263,7 +265,7 @@ router.post(
             status: false,
             errors: "User is not regsitered",
           });
-
+        console.log(userOne, "show");
         const payload = {
           user: {
             email: email,

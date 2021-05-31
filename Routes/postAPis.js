@@ -4,13 +4,11 @@ const auth = require("../Middleware/auth");
 const Post = require("../Modal/PostModel");
 const Alumni = require("../Modal/AlumniModel");
 const alumniAuth = require("../Middleware/alumniAuth");
-const jwt = require("jsonwebtoken");
 const likesModel = require("../Modal/likesModel");
 const UserModel = require("../Modal/UserModel");
 var ObjectId = require("mongodb").ObjectID;
 const CommentModel = require("../Modal/CommentModel");
 const repliesModel = require("../Modal/repliesModel");
-const AlumniModel = require("../Modal/AlumniModel");
 
 router.get("/likes-Comment/:postId", auth, async (req, res) => {
   try {
