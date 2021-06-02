@@ -284,7 +284,7 @@ router.delete("/city/delete/:cityId", adminAuth, async (req, res) => {
   }
 });
 
-router.patch("city/update/:cityId", adminAuth, async (req, res) => {
+router.patch("/city/update/:cityId", adminAuth, async (req, res) => {
   console.log(req.params.cityId);
   try {
     const udpateData = req.body;
