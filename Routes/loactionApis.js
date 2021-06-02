@@ -38,6 +38,7 @@ router.post("/country/add", adminAuth, (req, res) => {
   const newCountry = new Country({
     sortname: req.body.sortname,
     name: req.body.name,
+    status: true,
   });
   newCountry
     .save()
@@ -127,6 +128,7 @@ router.post("/state/add", adminAuth, async (req, res) => {
       const newstate = new State({
         sortname: req.body.sortname,
         name: req.body.name,
+        status: true,
         country: req.body.countryId,
       });
 
@@ -235,6 +237,7 @@ router.post("/city/add", adminAuth, async (req, res) => {
     if (req.body.stateId) {
       const newCity = new City({
         name: req.body.name,
+        status: true,
         state: req.body.stateId,
       });
 
