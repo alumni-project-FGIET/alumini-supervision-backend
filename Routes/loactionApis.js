@@ -13,7 +13,7 @@ const adminAuth = require("../Middleware/adminAuth");
 router.get("/country/get", async (req, res) => {
   try {
     const countryList = await Country.find().select(
-      "name sortname createdAt updatedAt"
+      "name sortname status createdAt updatedAt"
     );
     res.status(200).json({ status: true, data: countryList });
   } catch (err) {
@@ -26,7 +26,7 @@ router.get("/country/:countryId", async (req, res) => {
   console.log(req.params.countryId);
   try {
     const postDet = await Country.findById(req.params.countryId).select(
-      "name sortname createdAt updatedAt"
+      "name sortname status createdAt updatedAt"
     );
     res.json({ status: true, data: postDet });
   } catch (err) {
@@ -38,6 +38,7 @@ router.post("/country/add", adminAuth, (req, res) => {
   const newCountry = new Country({
     sortname: req.body.sortname,
     name: req.body.name,
+    status: true,
   });
   newCountry
     .save()
@@ -100,7 +101,7 @@ router.patch("/country/update/:countryId", adminAuth, async (req, res) => {
 router.get("/state/get", async (req, res) => {
   try {
     stateList = await State.find()
-      .select("name sortname country createdAt updatedAt")
+      .select("name sortname country status createdAt updatedAt")
       .populate("country", "name sortname");
     res.json({ status: true, data: stateList });
   } catch (err) {
@@ -113,7 +114,7 @@ router.get("/state/:stateId", async (req, res) => {
   console.log(req.params.stateId);
   try {
     const postDet = await State.findById(req.params.stateId)
-      .select("name sortname country createdAt updatedAt")
+      .select("name sortname country status createdAt updatedAt")
       .populate("country", "name sortname");
     res.json({ status: true, data: postDet });
   } catch (err) {
@@ -127,6 +128,7 @@ router.post("/state/add", adminAuth, async (req, res) => {
       const newstate = new State({
         sortname: req.body.sortname,
         name: req.body.name,
+        status: true,
         country: req.body.countryId,
       });
 
@@ -198,7 +200,7 @@ router.patch("/state/update/:stateId", adminAuth, async (req, res) => {
 router.get("/city/get", async (req, res) => {
   try {
     cityList = await City.find()
-      .select("name state createdAt updatedAt")
+      .select("name state status createdAt updatedAt")
       .populate({
         path: "state",
         select: "name",
@@ -218,7 +220,7 @@ router.get("/city/:cityId", async (req, res) => {
   try {
     const postDet = await City.findById(req.params.cityId).populate({
       path: "state",
-      select: "name",
+      select: "name status",
       populate: {
         path: "country",
         select: "name",
@@ -235,6 +237,7 @@ router.post("/city/add", adminAuth, async (req, res) => {
     if (req.body.stateId) {
       const newCity = new City({
         name: req.body.name,
+        status: true,
         state: req.body.stateId,
       });
 
@@ -281,7 +284,7 @@ router.delete("/city/delete/:cityId", adminAuth, async (req, res) => {
   }
 });
 
-router.patch("city/update/:cityId", adminAuth, async (req, res) => {
+router.patch("/city/update/:cityId", adminAuth, async (req, res) => {
   console.log(req.params.cityId);
   try {
     const udpateData = req.body;

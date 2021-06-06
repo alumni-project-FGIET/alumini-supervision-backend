@@ -13,7 +13,7 @@ const crypto = require("crypto");
 router.get("/get", adminAuth, async (req, res) => {
   try {
     const adminList = await Admin.find().select(
-      "name email admin phoneNo title createdAt updatedAt"
+      "name email admin phoneNo title status createdAt updatedAt"
     );
     res.json({ status: true, data: adminList });
   } catch (err) {
@@ -26,7 +26,7 @@ router.get("/get/:adminId", adminAuth, async (req, res) => {
   console.log(req.params.adminId);
   try {
     const adminDet = await Admin.findById(req.params.adminId).select(
-      "name email admin phoneNo title createdAt updatedAt"
+      "name email admin phoneNo title status createdAt updatedAt"
     );
     res.json({ status: true, data: adminDet });
   } catch (err) {
@@ -114,67 +114,67 @@ router.post(
     ).isLength({ min: 6 }),
   ],
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    } else {
-      const { name, email, password, phoneNo, title, status } = req.body;
-      try {
-        let admin = await Admin.findOne({ email: email });
-        if (admin) {
-          return res
-            .status(400)
-            .json({ errors: { message: "admin already exists" } });
-        }
-        const salt = await bcrypt.genSalt(10);
-        const passwordHased = await bcrypt.hash(password, salt);
-        const newAdmin = await new Admin({
-          name: name,
-          email: email,
-          admin: true,
-          status: false,
-          phoneNo: phoneNo,
-          password: passwordHased,
-          title: title,
-        });
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const { name, email, password, phoneNo, title } = req.body;
+      const admin = await Admin.findOne({ email });
+      console.log(admin, "no admin");
+      if (admin)
+        return res.json({ status: true, message: "Admin already exists" });
 
-        const adminOne = Admin.findOne({ email: email });
-        if (!adminOne) {
-          return res.status(400).json({
-            status: false,
-            errors: { message: "Admin already exists" },
+      const salt = await bcrypt.genSalt(10);
+      const passwordHased = await bcrypt.hash(password, salt);
+
+      const newAdmin = new Admin({
+        name: name,
+        email: email,
+        admin: true,
+        status: false,
+        phoneNo: phoneNo,
+        password: passwordHased,
+        title: title,
+      });
+      await newAdmin.save();
+
+      const adminOne = Admin.findOne({ email: email });
+
+      if (!adminOne) {
+        return res.status(400).json({
+          status: false,
+          errors: { message: "Admin already exists" },
+        });
+      }
+
+      const payload = {
+        user: {
+          email: email,
+          id: adminOne._id,
+        },
+      };
+
+      jwt.sign(payload, process.env.JWT, function (err, token) {
+        console.log(err, token);
+        if (token) {
+          res.json({
+            status: true,
+            message: "contact with your team and get verified",
+            data: {
+              name: name,
+              admin: true,
+              email: email,
+              status: false,
+              phoneNo: phoneNo,
+              title: title,
+              token: token,
+            },
           });
         }
-
-        newAdmin.save();
-        const payload = {
-          user: {
-            email: email,
-            id: adminOne._id,
-          },
-        };
-
-        jwt.sign(payload, process.env.JWT, function (err, token) {
-          console.log(err, token);
-          if (token) {
-            res.json({
-              status: true,
-              data: {
-                name: name,
-                admin: true,
-                email: email,
-                status: status,
-                phoneNo: phoneNo,
-                title: title,
-                token: token,
-              },
-            });
-          }
-        });
-      } catch (err) {
-        console.log(req.body);
-        res.json({ status: false, message: "Admin not added", error: err });
-      }
+      });
+    } catch (err) {
+      res.json({ status: false, message: "Admin not added", error: err });
     }
   }
 );
@@ -240,6 +240,29 @@ router.patch("/updatePassword/:adminId", adminAuth, async (req, res) => {
         status: true,
       });
     }
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
+router.patch("/media/:adminId", adminAuth, async (req, res) => {
+  console.log(req.params.adminId);
+  try {
+    const { MediaUrl } = req.body;
+    const changeUser = await Admin.findOneAndUpdate(
+      {
+        _id: req.params.userId,
+      },
+      {
+        $set: {
+          MediaUrl: MediaUrl,
+        },
+      },
+      { upsert: true, returnNewDocument: true }
+    );
+    res.json({
+      status: true,
+    });
   } catch (err) {
     res.json({ status: false, message: err });
   }
@@ -337,19 +360,20 @@ router.delete("/:adminId", adminAuth, async (req, res) => {
 
 router.post("/forgetPassword", async (req, res) => {
   try {
-    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+    crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
       console.log(token, err);
-      Admin.findOne({ email: req.body.email }, function (err, admin) {
-        if (!admin) {
-          return res
-            .status(400)
-            .json({ status: false, message: "No admin found" });
-        }
-        admin.resetPasswordToken = token;
-        admin.resetPasswordExpires = Date.now(); // 1 hour
-        admin.save(function (err) {
-          res.json({ status: true, data: token });
+      Admin.findOne({ email: req.body.email }).then((response) => {
+        console.log(response);
+        if (!response)
+          return res.json({ status: false, message: "No admin found" });
+        if (!response.status)
+          return res.json({ status: false, message: "Admin is blocked " });
+        response.resetPasswordToken = token;
+        response.resetPasswordExpires = Date.now(); // 1 hour
+        response.save().then((ress) => {
+          console.log(ress);
+          return res.json({ status: true, data: ress.resetPasswordToken });
         });
       });
     });
@@ -364,13 +388,13 @@ router.post("/reset", async (req, res) => {
       resetPasswordToken: req.body.resetPasswordToken,
     });
     if (!admin)
-      return res.status(200).json({
-        status: true,
+      return res.json({
+        status: false,
         message: "No admin is found with this token",
       });
     if (!admin.resetPasswordToken)
-      return res.status(200).json({
-        status: true,
+      return res.json({
+        status: false,
         message: "password reset link is invalid or has expired",
       });
 

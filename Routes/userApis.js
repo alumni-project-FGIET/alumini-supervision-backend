@@ -38,6 +38,21 @@ router.get("/get/:userId", auth, async (req, res) => {
   }
 });
 
+router.get("/profile", auth, async (req, res) => {
+  try {
+    console.log(req.user.user);
+    const postDet = await User.find({ _id: req.user.user.id, status: true })
+      .select(
+        "firstName lastName email  MediaUrl phoneNo status college createdAt"
+      )
+      .populate("college");
+    console.log(postDet);
+    res.json({ status: true, data: postDet });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
 router.get("/admin-get", adminAuth, async (req, res) => {
   try {
     const userList = await User.find()
@@ -211,6 +226,8 @@ router.post(
         lastName: lastName,
         MediaUrl: null,
         verified: false,
+        events: [],
+        eventscount: 0,
         college: collegeId,
         password: passwordHased,
         verifyToken: ramdomNo,
@@ -235,7 +252,7 @@ router.post(
           ramdomNo +
           "</h1></div>",
       };
-      await smtpTransport.sendMail(mailOptions, function (error, info) {
+      smtpTransport.sendMail(mailOptions, function (error, info) {
         if (error) {
           console.log(error);
           return res.json({ status: false, message: "Email not Send to mail" });
@@ -248,7 +265,7 @@ router.post(
             status: false,
             errors: "User is not regsitered",
           });
-
+        console.log(userOne, "show");
         const payload = {
           user: {
             email: email,
@@ -379,54 +396,39 @@ router.post("/send-email", async (req, res) => {
     const userDet = await User.find({ email: email });
     if (userDet) {
       var smtpTransport = await nodemailer.createTransport({
-        service: "Gmail",
+        host: "smtp.gmail.com",
+        port: 465,
         auth: {
           user: "singhnitesh9001@gmail.com",
           pass: `${process.env.EMAIL_PASSWORD}`,
         },
       });
-      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-      ramdomNo = String(ramdomNo);
-      ramdomNo = ramdomNo.substring(0, 4);
-      console.log(ramdomNo, userDet[0]._id);
       var mailOptions = {
         to: email,
         from: "singhnitesh9001@gmail.com",
         subject: "Verify Account",
         html:
           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-          ramdomNo +
           "</h1></div>",
       };
-      let info = await smtpTransport.sendMail(mailOptions, function (err) {
-        console.log("err", err, userDet);
+      smtpTransport.sendMail(mailOptions, function (err) {
         if (!err) {
           res.json({ status: true, message: "Email Send to mail" });
         } else {
-          res.json({ status: false, message: "Email not Send to mail" });
+          res.json({
+            status: false,
+            message: "Email not Send to mail",
+            error: err,
+          });
         }
       });
-      const userData = {
-        verifyToken: ramdomNo,
-      };
-      const changeuser = await User.findByIdAndUpdate(
-        {
-          _id: userDet[0]._id,
-        },
-        {
-          $set: {
-            verifyToken: ramdomNo,
-          },
-        },
-        { upsert: true }
-      );
     }
   } catch (err) {
     res.json({ message: err });
   }
 });
 
-router.post("/verify", async (req, res) => {
+router.post("/verify", auth, async (req, res) => {
   const { email, tokenValue } = req.body;
   try {
     const userDet = await User.find({ email: email });
@@ -451,68 +453,97 @@ router.post("/verify", async (req, res) => {
 
 router.post("/forgetPassword", async (req, res) => {
   try {
-    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+    crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
-      console.log(token, err);
-      User.findOne({ email: req.body.email }, function (err, user) {
-        if (!user) {
-          console.log("wrong");
-          return res.status(400).json({ errors: "No user found" });
-        }
-        user.resetPasswordToken = token;
-        user.resetPasswordExpires = Date.now(); // 1 hour
-        user.save(function (err) {
-          res.json({ status: true, data: "reset Password is set Sucessfully" });
+
+      User.findOne({ email: req.body.email }).then((response) => {
+        if (!response)
+          return res.json({ status: false, message: "No user found" });
+        if (!response.status)
+          return res.json({ status: false, message: "User is blocked " });
+
+        var smtpTransport = nodemailer.createTransport({
+          service: "Gmail",
+          host: "smtp.gmail.com",
+          port: 465,
+          auth: {
+            user: "singhnitesh9001@gmail.com",
+            pass: `${process.env.EMAIL_PASSWORD}`,
+          },
+        });
+
+        var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+        ramdomNo = String(ramdomNo);
+        ramdomNo = ramdomNo.substring(0, 4);
+
+        var mailOptions = {
+          to: req.body.email,
+          from: "singhnitesh9001@gmail.com",
+          subject: "Verify Account",
+          html:
+            "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+            ramdomNo +
+            "</h1></div>",
+        };
+
+        smtpTransport.sendMail(mailOptions, function (err) {
+          if (!err) {
+            res.json({ status: true, message: "Email Send to mail" });
+          } else {
+            res.json({ status: false, message: "Email not Send to mail" });
+          }
+        });
+        response.resetPasswordToken = token;
+        response.verifyToken = ramdomNo;
+        response.resetPasswordExpires = Date.now(); // 1 hour
+        response.save().then((ress) => {
+          console.log(ress);
+          return res.json({
+            status: true,
+            data: ress.resetPasswordToken,
+          });
         });
       });
     });
-    console.log(tokenValue);
   } catch (err) {
     res.json({ status: false, message: err });
   }
 });
 
 router.post("/reset", async (req, res) => {
-  await User.findOne({ resetPasswordToken: req.body.resetPasswordToken }).then(
-    (user) => {
-      if (user.resetPasswordToken === null) {
-        console.error("password reset link is invalid or has expired");
-        res.status(403).json({
-          status: true,
-          data: "password reset link is invalid or has expired",
-        });
-      } else if (user != null) {
-        console.log("user exists in db");
-        bcrypt.genSalt(10, (err, salt) => {
-          bcrypt.hash(req.body.password, salt, (err, hash) => {
-            if (err) throw err;
-            user.password = hash;
-            user
-              .save()
-              .then((user) => res.json(user))
-              .catch((err) => console.log(err));
-            user
-              .updateOne({
-                password: hash,
-                resetPasswordToken: null,
-                resetPasswordExpires: null,
-              })
-              .then(() => {
-                console.log(`password updated ${user.password}`);
-                res
-                  .status(200)
-                  .json({ status: true, message: "password updated" });
-              });
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: req.body.resetPasswordToken,
+    });
+    if (!user)
+      return res.json({
+        status: false,
+        message: "No user is found with this token or token is invalid",
+      });
+    if (req.body.otpEmail !== user.verifyToken)
+      return res.json({
+        status: false,
+        message: "otp is invalid or has expired",
+      });
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(req.body.password, salt, (err, hash) => {
+        if (err) throw err;
+        user.password = hash;
+        user.save();
+        user
+          .updateOne({
+            password: hash,
+            resetPasswordToken: null,
+            resetPasswordExpires: null,
+          })
+          .then(() => {
+            res.json({ status: true, message: "password updated" });
           });
-        });
-      } else {
-        console.error("no user exists in db to update");
-        res
-          .status(401)
-          .json({ status: false, data: "no user exists in db to update" });
-      }
-    }
-  );
+      });
+    });
+  } catch (err) {
+    res.json({ status: false, message: "Some internal Issue" });
+  }
 });
 
 module.exports = router;

@@ -16,8 +16,6 @@ module.exports = async (req, res, next) => {
       req.user = decoded;
 
       const userData = await User.findOne({ email: userEmail });
-      //   console.log(userData);
-      //   console.log(decoded.user, "dvfv");
 
       if (userData) next();
       else {

@@ -15,6 +15,15 @@ const userSchema = Schema(
     verified: {
       type: Boolean,
     },
+    events: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "events",
+      },
+    ],
+    eventscount: {
+      type: Number,
+    },
     firstName: {
       type: String,
       required: true,
@@ -55,6 +64,5 @@ const userSchema = Schema(
     timestamps: true,
   }
 );
-
 
 module.exports = mongoose.model("users", userSchema);

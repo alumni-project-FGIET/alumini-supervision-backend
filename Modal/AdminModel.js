@@ -10,7 +10,6 @@ const adminSchema = Schema(
     },
     phoneNo: {
       type: String,
-      unique: true,
       required: true,
     },
     name: {
@@ -20,23 +19,25 @@ const adminSchema = Schema(
     status: {
       type: Boolean,
     },
-    password:{
-        type:String,
-        required:true,
+    password: {
+      type: String,
+      required: true,
     },
-    title:{
-        type:String,
-        required:true
+    title: {
+      type: String,
     },
-    admin:{
-      type:Boolean
-   },
-   resetPasswordToken:{
-    type:String
-  },
-  resetPasswordExpires:{
-    type:String
-  }
+    MediaUrl: {
+      type: String,
+    },
+    admin: {
+      type: Boolean,
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: String,
+    },
   },
 
   {

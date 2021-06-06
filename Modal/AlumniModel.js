@@ -22,11 +22,27 @@ const alumnischema = Schema(
       type: String,
       required: true,
     },
-
     verified: {
       type: Boolean,
     },
-
+    posts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "posts",
+      },
+    ],
+    postcount: {
+      type: Number,
+    },
+    events: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "events",
+      },
+    ],
+    eventscount: {
+      type: Number,
+    },
     college: {
       required: true,
       type: Schema.Types.ObjectId,

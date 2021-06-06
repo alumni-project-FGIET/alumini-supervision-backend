@@ -11,17 +11,24 @@ const commentSchema = Schema(
       type: Schema.Types.ObjectId,
       ref: "alumnis",
     },
-    replies: {
+    post: {
       type: Schema.Types.ObjectId,
-      ref: "replies",
+      ref: "posts",
     },
-    text: {
+    replies: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "replies",
+      },
+    ],
+
+    replyCount: {
+      type: Number,
+    },
+
+    comment: {
       type: String,
       required: true,
-    },
-    date: {
-      type: Date,
-      default: Date.now,
     },
   },
   {

@@ -5,9 +5,21 @@ const multer = require("multer");
 const path = require("path");
 const City = require("../Modal/Location/CityModel");
 const adminAuth = require("../Middleware/adminAuth");
+const auth = require("../Middleware/auth");
 //GET ALL College LIST
 
 router.get("/get", async (req, res) => {
+  try {
+    const collegeList = await College.find({ status: true })
+      .select("name status collegeCode city createdAt updatedAt")
+      .populate("city", "name state");
+    res.json({ status: true, data: collegeList });
+  } catch (err) {
+    res.json({ status: false, message: "Data not Found" });
+  }
+});
+
+router.get("/get-admin", adminAuth, async (req, res) => {
   try {
     const collegeList = await College.find()
       .select("name status collegeCode city createdAt updatedAt")
@@ -17,9 +29,22 @@ router.get("/get", async (req, res) => {
     res.json({ status: false, message: "Data not Found" });
   }
 });
-
 //GET ONE College BY ID
-router.get("/:collegeId", async (req, res) => {
+router.get("get/:collegeId", async (req, res) => {
+  console.log(req.params.collegeId);
+  try {
+    const postDet = await College.findOne({
+      _id: req.params.collegeId,
+      status: true,
+    })
+      .select("name status collegeCode city createdAt updatedAt")
+      .populate("city", "name state");
+    res.json({ status: true, data: postDet });
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+router.get("/get-admin/:collegeId", async (req, res) => {
   console.log(req.params.collegeId);
   try {
     const postDet = await College.findById(req.params.collegeId)
@@ -30,7 +55,6 @@ router.get("/:collegeId", async (req, res) => {
     res.json({ message: err });
   }
 });
-
 // GET College BY SEARCH
 router.post("/search", async (req, res) => {
   try {

@@ -1,19 +1,27 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const postSchema = Schema(
+const replieSchema = Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
       ref: "users",
     },
-    text: {
+    alumni: {
+      type: Schema.Types.ObjectId,
+      ref: "alumnis",
+    },
+    reply: {
       type: String,
       required: true,
     },
-    date: {
-      type: Date,
-      default: Date.now,
+    post: {
+      type: Schema.Types.ObjectId,
+      ref: "posts",
+    },
+    comment: {
+      type: Schema.Types.ObjectId,
+      ref: "comments",
     },
   },
   {
@@ -21,4 +29,4 @@ const postSchema = Schema(
   }
 );
 
-module.exports = mongoose.model("posts", postSchema);
+module.exports = mongoose.model("replies", replieSchema);

@@ -12,13 +12,14 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const auth = require("../Middleware/auth");
 const adminAuth = require("../Middleware/adminAuth");
+const alumniAuth = require("../Middleware/alumniAuth");
 
 //GET ALL College LIST
 router.get("/get", auth, async (req, res) => {
   try {
     const alumniList = await Alumni.find({ status: true })
       .select(
-        "firstName lastName email phoneNo status MediaUrl college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount status verified MediaUrl college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -29,16 +30,14 @@ router.get("/get", auth, async (req, res) => {
   }
 });
 
-//GET ONE College BY ID
 router.get("/get/:alumniId", auth, async (req, res) => {
-  console.log(req.params.alumniId);
   try {
-    const postDet = await Alumni.find({
+    const pos11tDet = await Alumni.find({
       _id: req.params.alumniId,
       status: true,
     })
       .select(
-        "firstName lastName email phoneNo MediaUrl status college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount verified MediaUrl status college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -48,11 +47,30 @@ router.get("/get/:alumniId", auth, async (req, res) => {
   }
 });
 
+//
+router.get("/profile", alumniAuth, async (req, res) => {
+  try {
+    const postDet = await Alumni.find({
+      _id: req.user.user.id,
+      status: true,
+    })
+      .select(
+        "firstName lastName email phoneNo MediaUrl posts postcount verified status college jobs jobProvider createdAt"
+      )
+      .populate("college")
+      .populate("jobLocation");
+    res.json({ status: true, data: postDet });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
+//
 router.get("/admin-get", adminAuth, async (req, res) => {
   try {
     const alumniList = await Alumni.find()
       .select(
-        "firstName lastName email phoneNo MediaUrl status college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount verified MediaUrl status college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -62,13 +80,13 @@ router.get("/admin-get", adminAuth, async (req, res) => {
   }
 });
 
-//GET ONE College BY ID
+//
 router.get("/admin-get/:alumniId", adminAuth, async (req, res) => {
   console.log(req.params.alumniId);
   try {
     const postDet = await Alumni.find({ _id: req.params.alumniId })
       .select(
-        "firstName lastName email phoneNo status MediaUrl college jobs jobProvider createdAt"
+        "firstName lastName email phoneNo posts postcount verified status MediaUrl college jobs jobProvider createdAt"
       )
       .populate("college")
       .populate("jobLocation");
@@ -78,7 +96,7 @@ router.get("/admin-get/:alumniId", adminAuth, async (req, res) => {
   }
 });
 
-// GET College BY SEARCH
+//
 router.post("/search", auth, async (req, res) => {
   try {
     var regex = new RegExp(req.body.name, "i");
@@ -89,6 +107,7 @@ router.post("/search", auth, async (req, res) => {
   }
 });
 
+//
 router.post(
   "/login",
   [
@@ -160,7 +179,7 @@ router.post(
       } else {
         res.json({
           status: false,
-          message: "alumni is blocked please contact other alumni",
+          message: "alumni is blocked please contact with admin",
         });
       }
     } catch (err) {
@@ -235,7 +254,7 @@ router.post(
             email: email,
             phoneNo: phoneNo,
             alumni: true,
-            status: false,
+            status: true,
             rollNo: rollNo,
             MediaUrl: null,
             jobs: jobs,
@@ -243,6 +262,9 @@ router.post(
             verified: false,
             college: collegeId,
             verifyToken: ramdomNo,
+            posts: [],
+            events: [],
+            eventscount: 0,
             password: passwordHased,
           });
 
@@ -416,152 +438,184 @@ router.delete("/delete/:alumniId", auth, async (req, res) => {
   }
 });
 
-router.post("/send-email", async (req, res) => {
-  const { email } = req.body;
-  try {
-    const alumniDet = await Alumni.find({ email: email });
+// router.post("/send-email", async (req, res) => {
+//   const { email } = req.body;
+//   try {
+//     const alumniDet = await Alumni.find({ email: email });
 
-    if (alumniDet) {
-      var smtpTransport = await nodemailer.createTransport({
-        service: "Gmail",
-        auth: {
-          user: "singhnitesh9001@gmail.com",
-          pass: `${process.env.EMAIL_PASSWORD}`,
-        },
-      });
-      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-      ramdomNo = String(ramdomNo);
-      ramdomNo = ramdomNo.substring(0, 4);
-      console.log(ramdomNo, alumniDet[0]._id);
-      var mailOptions = {
-        to: email,
-        from: "singhnitesh9001@gmail.com",
-        subject: "Verify Account",
-        html:
-          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-          ramdomNo +
-          "</h1></div>",
-      };
-      let info = await smtpTransport.sendMail(mailOptions, function (err) {
-        console.log("err", err, alumniDet);
-        if (!err) {
-          res.json({ status: true, message: "Email Send to mail" });
-        } else {
-          res.json({ status: false, message: "Email not Send to mail" });
-        }
-      });
-      const alumniData = {
-        verifyToken: ramdomNo,
-      };
-      const changealumni = await Alumni.findByIdAndUpdate(
-        {
-          _id: alumniDet[0]._id,
-        },
-        {
-          $set: {
-            verifyToken: ramdomNo,
-          },
-        },
-        { upsert: true }
-      );
-    }
-  } catch (err) {
-    res.json({ message: err });
-  }
-});
+//     if (alumniDet) {
+//       var smtpTransport = await nodemailer.createTransport({
+//         service: "Gmail",
+//         auth: {
+//           user: "singhnitesh9001@gmail.com",
+//           pass: `${process.env.EMAIL_PASSWORD}`,
+//         },
+//       });
+//       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+//       ramdomNo = String(ramdomNo);
+//       ramdomNo = ramdomNo.substring(0, 4);
+//       console.log(ramdomNo, alumniDet[0]._id);
+//       var mailOptions = {
+//         to: email,
+//         from: "singhnitesh9001@gmail.com",
+//         subject: "Verify Account",
+//         html:
+//           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+//           ramdomNo +
+//           "</h1></div>",
+//       };
+//       let info = await smtpTransport.sendMail(mailOptions, function (err) {
+//         console.log("err", err, alumniDet);
+//         if (!err) {
+//           res.json({ status: true, message: "Email Send to mail" });
+//         } else {
+//           res.json({ status: false, message: "Email not Send to mail" });
+//         }
+//       });
+//       const alumniData = {
+//         verifyToken: ramdomNo,
+//       };
+//       const changealumni = await Alumni.findByIdAndUpdate(
+//         {
+//           _id: alumniDet[0]._id,
+//         },
+//         {
+//           $set: {
+//             verifyToken: ramdomNo,
+//           },
+//         },
+//         { upsert: true }
+//       );
+//     }
+//   } catch (err) {
+//     res.json({ message: err });
+//   }
+// });
 
-router.post("/verify", async (req, res) => {
-  const { email, tokenValue } = req.body;
-  try {
-    if (email || tokenValue) {
-      const alumniDet = await Alumni.find({ email: email });
-      if (alumniDet[0].verifyToken == tokenValue) {
-        const changealumni = await Alumni.findByIdAndUpdate(
-          {
-            _id: alumniDet[0]._id,
-          },
-          {
-            $set: {
-              verified: true,
-              status: true,
-            },
-          },
-          { upsert: true }
-        );
-        res.json({ status: true, message: "verified" });
-      }
-    } else {
-      res.json({ status: false, message: "Email and tokenValue is required" });
-    }
-  } catch (err) {
-    res.json({ status: false, message: "Not verified" });
-  }
-});
+// router.post("/verify", async (req, res) => {
+//   const { email, tokenValue } = req.body;
+//   try {
+//     if (email || tokenValue) {
+//       const alumniDet = await Alumni.find({ email: email });
+//       if (alumniDet[0].verifyToken == tokenValue) {
+//         const changealumni = await Alumni.findByIdAndUpdate(
+//           {
+//             _id: alumniDet[0]._id,
+//           },
+//           {
+//             $set: {
+//               verified: true,
+//               status: true,
+//             },
+//           },
+//           { upsert: true }
+//         );
+//         res.json({ status: true, message: "verified" });
+//       }
+//     } else {
+//       res.json({ status: false, message: "Email and tokenValue is required" });
+//     }
+//   } catch (err) {
+//     res.json({ status: false, message: "Not verified" });
+//   }
+// });
 
 router.post("/forgetPassword", async (req, res) => {
   try {
-    const tokenValue = await crypto.randomBytes(20, function (err, buf) {
+    crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
       console.log(token, err);
-      Alumni.findOne({ email: req.body.email }, function (err, alumni) {
-        if (!alumni) {
-          console.log("wrong");
-          return res.status(400).json({ errors: "No alumni found" });
-        }
-        alumni.resetPasswordToken = token;
-        alumni.resetPasswordExpires = Date.now(); // 1 hour
-        alumni.save(function (err) {
-          res.json({ status: true, data: "reset Password is set Sucessfully" });
+
+      Alumni.findOne({ email: req.body.email }).then((response) => {
+        console.log(response);
+        if (!response)
+          return res.json({ status: false, message: "No Alumni found" });
+        if (!response.status)
+          return res.json({ status: false, message: "Alumni is blocked " });
+        var smtpTransport = nodemailer.createTransport({
+          service: "Gmail",
+          host: "smtp.gmail.com",
+          port: 465,
+          auth: {
+            user: "singhnitesh9001@gmail.com",
+            pass: `${process.env.EMAIL_PASSWORD}`,
+          },
+        });
+        var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+        ramdomNo = String(ramdomNo);
+        ramdomNo = ramdomNo.substring(0, 4);
+        var mailOptions = {
+          to: req.body.email,
+          from: "singhnitesh9001@gmail.com",
+          subject: "Verify Account",
+          html:
+            "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+            ramdomNo +
+            "</h1></div>",
+        };
+
+        smtpTransport.sendMail(mailOptions, function (err) {
+          if (!err) {
+            res.json({ status: true, message: "Email Send to mail" });
+          } else {
+            res.json({ status: false, message: "Email not Send to mail" });
+          }
+        });
+        response.resetPasswordToken = token;
+        response.verifyToken = ramdomNo;
+        response.resetPasswordExpires = Date.now(); // 1 hour
+        response.save().then((ress) => {
+          return res.json({
+            status: true,
+            data: ress.resetPasswordToken,
+          });
         });
       });
     });
-    console.log(tokenValue);
   } catch (err) {
     res.json({ status: false, message: err });
   }
 });
 
-router.post("/resetPassword", async (req, res) => {
-  await Alumni.findOne({
-    resetPasswordToken: req.body.resetPasswordToken,
-  }).then((alumni) => {
-    if (alumni.resetPasswordToken === null) {
-      console.error("password reset link is invalid or has expired");
-      res.status(403).json({
-        status: true,
-        data: "password reset link is invalid or has expired",
+router.post("/reset", async (req, res) => {
+  try {
+    const alumni = await Alumni.findOne({
+      resetPasswordToken: req.body.resetPasswordToken,
+    });
+    if (!alumni)
+      return res.json({
+        status: false,
+        message: "No user is found with this token",
       });
-    } else if (alumni != null) {
-      console.log("alumni exists in db");
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(req.body.password, salt, (err, hash) => {
-          if (err) throw err;
-          alumni.password = hash;
-          alumni
-            .save()
-            .then((alumni) => res.json(alumni))
-            .catch((err) => console.log(err));
-          alumni
-            .updateOne({
-              password: hash,
-              resetPasswordToken: null,
-              resetPasswordExpires: null,
-            })
-            .then(() => {
-              console.log(`password updated ${alumni.password}`);
-              res
-                .status(200)
-                .json({ status: true, message: "password updated" });
-            });
-        });
+    if (!alumni.resetPasswordToken)
+      return res.json({
+        status: false,
+        message: "password reset link is invalid or has expired",
       });
-    } else {
-      console.error("no alumni exists in db to update");
-      res
-        .status(401)
-        .json({ status: false, data: "no alumni exists in db to update" });
-    }
-  });
-});
+    if (req.body.otpEmail !== alumni.verifyToken)
+      return res.json({
+        status: false,
+        message: "otp is invalid or has expired",
+      });
 
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(req.body.password, salt, (err, hash) => {
+        if (err) throw err;
+        alumni.password = hash;
+        alumni.save();
+        alumni
+          .updateOne({
+            password: hash,
+            resetPasswordToken: null,
+            resetPasswordExpires: null,
+          })
+          .then(() => {
+            res.status(200).json({ status: true, message: "password updated" });
+          });
+      });
+    });
+  } catch (err) {
+    res.status(400).json({ status: false, message: "Some internal Issue" });
+  }
+});
 module.exports = router;

@@ -11,6 +11,9 @@ const stateSchema = Schema({
   sortname: {
     type: String
   },
+  status:{
+    type:Boolean,
+  },
   country: 
     {
       type: Schema.Types.ObjectId,
