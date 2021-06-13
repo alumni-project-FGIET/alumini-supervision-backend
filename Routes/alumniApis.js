@@ -32,7 +32,7 @@ router.get("/get", auth, async (req, res) => {
 
 router.get("/get/:alumniId", auth, async (req, res) => {
   try {
-    const pos11tDet = await Alumni.find({
+    const postDet = await Alumni.find({
       _id: req.params.alumniId,
       status: true,
     })
@@ -43,7 +43,7 @@ router.get("/get/:alumniId", auth, async (req, res) => {
       .populate("jobLocation");
     res.json({ status: true, data: postDet });
   } catch (err) {
-    res.json({ message: err });
+    res.json({ status: false, message: err || "something went wrong" });
   }
 });
 
@@ -218,7 +218,7 @@ router.post(
       return res.status(400).json({ status: false, errors: errors.array() });
     } else {
       if (
-        jobs.isLength < 0 ||
+        // jobs.isLength < 0 ||
         !firstName ||
         !rollNo ||
         !collegeId ||
@@ -264,6 +264,9 @@ router.post(
             verifyToken: ramdomNo,
             posts: [],
             events: [],
+            totalFriend: 0,
+            friendCount: 0,
+            friendList: [],
             eventscount: 0,
             password: passwordHased,
           });

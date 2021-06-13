@@ -160,7 +160,6 @@ router.post("/state/add", adminAuth, async (req, res) => {
     res.send({ err: err });
   }
 });
-//ADD
 
 //DELETE THE  BY ID
 router.delete("/state/delete/:stateId", adminAuth, async (req, res) => {
@@ -269,7 +268,6 @@ router.post("/city/add", adminAuth, async (req, res) => {
     res.send({ err: "error" });
   }
 });
-//ADD
 
 //DELETE THE  BY ID
 router.delete("/city/delete/:cityId", adminAuth, async (req, res) => {
