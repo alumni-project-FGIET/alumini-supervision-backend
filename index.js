@@ -21,7 +21,7 @@ require("dotenv").config();
 
 const port = process.env.PORT || 5000;
 const server = http.createServer(app);
-connection();
+// connection();
 
 app.use(cors());
 app.use(express.json());
