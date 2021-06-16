@@ -30,7 +30,7 @@ router.get("/get-admin", adminAuth, async (req, res) => {
   }
 });
 //GET ONE College BY ID
-router.get("get/:collegeId", async (req, res) => {
+router.get("/get/:collegeId", async (req, res) => {
   console.log(req.params.collegeId);
   try {
     const postDet = await College.findOne({
