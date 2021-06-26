@@ -275,7 +275,8 @@ router.post(
 
           if (response) {
             var smtpTransport = nodemailer.createTransport({
-              service: "Gmail",
+              host: "smtp.gmail.com",
+              port: 465,
               auth: {
                 user: "singhnitesh9001@gmail.com",
                 pass: `${process.env.EMAIL_PASSWORD}`,
@@ -494,7 +495,28 @@ router.delete("/delete/:alumniId", auth, async (req, res) => {
 //     res.json({ message: err });
 //   }
 // });
-
+router.post("/verify", auth, async (req, res) => {
+  const { email, tokenValue } = req.body;
+  try {
+    const userDet = await Alumni.find({ email: email });
+    if (userDet[0].verifyToken == tokenValue) {
+      const changeuser = await Alumni.findByIdAndUpdate(
+        {
+          _id: userDet[0]._id,
+        },
+        {
+          $set: {
+            verified: true,
+          },
+        },
+        { upsert: true }
+      );
+      res.json({ status: true, message: "verified" });
+    }
+  } catch (err) {
+    res.json({ status: false, message: "Not verified" });
+  }
+});
 // router.post("/verify", async (req, res) => {
 //   const { email, tokenValue } = req.body;
 //   try {

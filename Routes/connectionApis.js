@@ -36,7 +36,7 @@ router.get("/get", auth, async (req, res) => {
     res.json({ status: false, message: "Data not Found" });
   }
 });
-
+  
 router.post("/search/:query", async (req, res) => {
   try {
     const alumniList = await AlumniModel.find({ status: true })
