@@ -84,6 +84,7 @@ router.post("/search", async (req, res) => {
 router.post("/add", auth, async (req, res) => {
   try {
     const userId = req.user.user.id;
+    const {title, description, venue, date, MediaUrl}=req.body;
     var userData;
     var ramdomNo = Math.floor(100000 + Math.random() * 900000);
     ramdomNo = String(ramdomNo);
@@ -92,14 +93,14 @@ router.post("/add", auth, async (req, res) => {
     if (req.user.user.alumni === true) {
       userData = await AlumniModel.findOne({ _id: userId, status: true });
       const newPost = new EventModel({
-        title: req.body.title,
-        description: req.body.description,
+        title: title,
+        description: description,
         eventCode: ramdomNo,
         status: true,
-        venue: req.body.venue,
-        date: req.body.date,
+        venue: venue,
+        date: date,
         alumnis: userData._id,
-        MediaUrl: req.body.MediaUrl,
+        MediaUrl: MediaUrl,
       });
       console.log(newPost);
       newPost.save().then((data) => {
@@ -118,14 +119,14 @@ router.post("/add", auth, async (req, res) => {
         status: true,
       });
       const newPost = new EventModel({
-        title: req.body.title,
-        description: req.body.description,
+        title: title,
+        description: description,
         eventCode: ramdomNo,
         status: true,
-        venue: req.body.venue,
-        date: req.body.date,
-        users: userData._id,
-        MediaUrl: req.body.MediaUrl,
+        venue: venue,
+        date: date,
+        alumnis: userData._id,
+        MediaUrl: MediaUrl,
       });
       console.log(newPost);
       newPost.save().then((data) => {
