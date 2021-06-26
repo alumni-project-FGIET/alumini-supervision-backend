@@ -5,7 +5,6 @@ const EventSchema = Schema(
   {
     title: {
       type: String,
-      required: true,
     },
     eventCode: {
       type: String,
@@ -19,8 +18,7 @@ const EventSchema = Schema(
       type: String,
     },
     date: {
-      type: String,
-      required: true,
+      type: String
     },
     alumnis: {
       type: Schema.Types.ObjectId,
