@@ -6,6 +6,7 @@ const EventModel = require("../Modal/EventModel");
 const UserModel = require("../Modal/UserModel");
 const router = express.Router();
 
+
 router.get("/get", async (req, res) => {
   try {
     const eventList = await EventModel.find({ status: true })
@@ -84,7 +85,7 @@ router.post("/search", async (req, res) => {
 router.post("/add", auth, async (req, res) => {
   try {
     const userId = req.user.user.id;
-    const {title, description, venue, date, MediaUrl}=req.body;
+    const { title, description, venue, date, MediaUrl } = req.body;
     var userData;
     var ramdomNo = Math.floor(100000 + Math.random() * 900000);
     ramdomNo = String(ramdomNo);

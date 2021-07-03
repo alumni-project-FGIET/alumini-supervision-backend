@@ -99,7 +99,17 @@ router.get("/get", auth, async (req, res) => {
       .select(
         "name  title discription MediaUrl likesUser comments commentCount likeCount  alumni date createdAt updatedAt"
       )
-      .populate("alumni", "firstName lastName alumni MediaUrl college");
+      .populate({
+        path: "alumni",
+        model: "alumnis",
+        select: "firstName lastName alumni MediaUrl college",
+        populate: {
+          path: "college",
+          model: "colleges",
+          select: "name",
+        },
+      });
+
     res.json({ status: true, data: postList });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
