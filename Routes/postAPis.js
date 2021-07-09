@@ -16,25 +16,27 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
       _id: req.params.postId,
       status: true,
     })
-      .select("likesUser likeCount comments commentCount")
+      .select("likesUser likeCount comments commentCount createdAt updatedAt")
       .populate({
         path: "comments",
         model: "comments",
-        select: "alumni user replyCount replies comment post date",
+        select:
+          "alumni user replyCount replies comment post date createdAt updatedAt",
         populate: {
           path: "alumni",
           model: "alumnis",
-          select: "firstName lastName email college",
+          select: "firstName lastName email college ",
         },
       })
       .populate({
         path: "comments",
         model: "comments",
-        select: "alumni user replyCount replies comment post date",
+        select:
+          "alumni user replyCount replies comment post date createdAt updatedAt",
         populate: {
           path: "replies",
           model: "replies",
-          select: "reply alumni user",
+          select: "reply alumni user createdAt updatedAt",
           populate: {
             path: "alumni",
             model: "alumnis",
@@ -45,7 +47,8 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
       .populate({
         path: "comments",
         model: "comments",
-        select: "alumni user replyCount replies comment post date",
+        select:
+          "alumni user replyCount replies comment post date createdAt updatedAt",
         populate: {
           path: "replies",
           model: "replies",
@@ -60,7 +63,8 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
       .populate({
         path: "comments",
         model: "comments",
-        select: "alumni user replyCount replies comment post date",
+        select:
+          "alumni user replyCount replies comment post date createdAt updatedAt",
         populate: {
           path: "user",
           model: "users",
