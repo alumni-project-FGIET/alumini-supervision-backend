@@ -25,7 +25,12 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
         populate: {
           path: "alumni",
           model: "alumnis",
-          select: "firstName lastName email college ",
+          select: "firstName lastName email college",
+          populate: {
+            path: "college",
+            model: "colleges",
+            select: "name",
+          },
         },
       })
       .populate({
@@ -41,6 +46,11 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
             path: "alumni",
             model: "alumnis",
             select: "firstName lastName email college",
+            populate: {
+              path: "college",
+              model: "colleges",
+              select: "name",
+            },
           },
         },
       })
@@ -57,6 +67,11 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
             path: "user",
             model: "users",
             select: "firstName lastName email college",
+            populate: {
+              path: "college",
+              model: "colleges",
+              select: "name",
+            },
           },
         },
       })
@@ -69,6 +84,11 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
           path: "user",
           model: "users",
           select: "firstName lastName email college",
+          populate: {
+            path: "college",
+            model: "colleges",
+            select: "name",
+          },
         },
       })
       .populate({
@@ -79,6 +99,11 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
           path: "alumni",
           model: "alumnis",
           select: "firstName lastName email college",
+          populate: {
+            path: "college",
+            model: "colleges",
+            select: "name",
+          },
         },
       })
       .populate({
@@ -88,6 +113,11 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
           path: "user",
           model: "users",
           select: "firstName lastName email college",
+          populate: {
+            path: "college",
+            model: "colleges",
+            select: "name",
+          },
         },
       });
 
