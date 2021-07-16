@@ -127,6 +127,7 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
   }
 });
 
+
 router.get("/get", auth, async (req, res) => {
   try {
     const postList = await Post.find({ status: true })
@@ -142,6 +143,35 @@ router.get("/get", auth, async (req, res) => {
           model: "colleges",
           select: "name",
         },
+      })
+      .populate({
+        path: "likesUser",
+        model: "likes",
+        select: "alumni user post date",
+        populate: {
+          path: "alumni",
+          model: "alumnis",
+          select: "firstName lastName email college",
+          populate: {
+            path: "college",
+            model: "colleges",
+            select: "name",
+          },
+        },
+      })
+      .populate({
+        path: "likesUser",
+        model: "likes",
+        populate: {
+          path: "user",
+          model: "users",
+          select: "firstName lastName email college",
+          populate: {
+            path: "college",
+            model: "colleges",
+            select: "name",
+          },
+        },
       });
 
     res.json({ status: true, data: postList });
@@ -149,6 +179,7 @@ router.get("/get", auth, async (req, res) => {
     res.json({ status: false, message: "Data not Found" });
   }
 });
+
 
 router.get("/my", auth, async (req, res) => {
   try {
@@ -163,18 +194,18 @@ router.get("/my", auth, async (req, res) => {
   }
 });
 
-router.get("/get", auth, async (req, res) => {
-  try {
-    const postList = await Post.find({ status: true })
-      .select(
-        "name  title discription MediaUrl likesUser comments commentCount likeCount  alumni date createdAt updatedAt"
-      )
-      .populate("alumni", "firstName lastName alumni MediaUrl college");
-    res.json({ status: true, data: postList });
-  } catch (err) {
-    res.json({ status: false, message: "Data not Found" });
-  }
-});
+// router.get("/get", auth, async (req, res) => {
+//   try {
+//     const postList = await Post.find({ status: true })
+//       .select(
+//         "name  title discription MediaUrl likesUser comments commentCount likeCount  alumni date createdAt updatedAt"
+//       )
+//       .populate("alumni", "firstName lastName alumni MediaUrl college");
+//     res.json({ status: true, data: postList });
+//   } catch (err) {
+//     res.json({ status: false, message: "Data not Found" });
+//   }
+// });
 
 router.get("/:postId", auth, async (req, res) => {
   try {
