@@ -127,6 +127,7 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
   }
 });
 
+
 router.get("/get", auth, async (req, res) => {
   try {
     const postList = await Post.find({ status: true })
@@ -178,6 +179,7 @@ router.get("/get", auth, async (req, res) => {
     res.json({ status: false, message: "Data not Found" });
   }
 });
+
 
 router.get("/my", auth, async (req, res) => {
   try {
