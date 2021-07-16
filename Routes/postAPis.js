@@ -408,8 +408,10 @@ router.post("/add", alumniAuth, async (req, res) => {
       title: req.body.title,
       discription: req.body.discription,
       status: true,
-      likesUser: [],
-      likeCount: null,
+     likesUser: [],
+      likeCount: 0,
+      commentCount: 0,
+      comments: [],
       alumni: userId,
       MediaUrl: req.body.MediaUrl,
     });
