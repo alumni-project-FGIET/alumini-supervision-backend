@@ -56,29 +56,10 @@ const userSchema = Schema(
     alumni: {
       type: Boolean,
     },
-    friendList: [
-      {
-        friend: { type: Schema.Types.ObjectId, ref: "friends" },
-        firstName: {
-          type: String,
-        },
-        lastName: {
-          type: String,
-        },
-        MediaUrl: {
-          type: String,
-        },
-        college: {
-          type: String,
-        },
-      },
-    ],
     totalFriend: {
       type: Number,
     },
-    friendCount: {
-      type: Number,
-    },
+
     resetPasswordToken: {
       type: String,
     },
