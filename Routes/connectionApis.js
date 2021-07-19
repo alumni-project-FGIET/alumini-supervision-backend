@@ -36,7 +36,7 @@ router.get("/get", auth, async (req, res) => {
     res.json({ status: false, message: "Data not Found" });
   }
 });
-  
+
 router.post("/search/:query", async (req, res) => {
   try {
     const alumniList = await AlumniModel.find({ status: true })
@@ -143,17 +143,45 @@ router.get("/suggest", auth, async (req, res) => {
     });
     console.log(userCode, req.user.user.id);
     const dataFilter = data.filter(function (d, i) {
-      return d.college.collegeCode === userCode[0].college.collegeCode;
+      return (
+        d.college.collegeCode === userCode[0].college.collegeCode &&
+        d._id !== req.user.user.id
+      );
     });
+
     res.json({ status: true, data: dataFilter });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
   }
 });
 
+router.get("/pending", auth, async (req, res) => {
+  try {
+    const send = await FriendModel.find({
+      user: req.user.user.id,
+      connect: false,
+    });
+    const received = await FriendModel.find({
+      targetUser: req.user.user.id,
+      connect: false,
+    });
+    res.json({
+      status: true,
+      invitationSend: send,
+      invitaionReceived: received,
+    });
+  } catch (err) {
+    res.json({ status: false, message: "Something went wrong" });
+  }
+});
+
 router.post("/addFriend/:friendId", auth, async (req, res) => {
   try {
     var usertarget;
+    const isSame = await FriendModel.findOne({
+      targetUser: req.params.friendId,
+      user: req.user.user.id,
+    });
     usertarget = await AlumniModel.findOne({
       _id: req.params.friendId,
       status: true,
@@ -163,13 +191,6 @@ router.post("/addFriend/:friendId", auth, async (req, res) => {
         _id: req.params.friendId,
         status: true,
       });
-
-    const newFriend = new FriendModel({
-      user: req.user.user.id,
-      targetUser: req.params.friendId,
-      connect: false,
-      blocked: false,
-    });
 
     var userData = await AlumniModel.findOne({
       _id: req.user.user.id,
@@ -185,21 +206,44 @@ router.post("/addFriend/:friendId", auth, async (req, res) => {
         .select("firstName lastName email verified MediaUrl college createdAt")
         .populate("college");
 
-    newFriend.save().then((data) => {
-      usertarget.friendList.unshift({
-        friend: data._id,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        MediaUrl: userData.MediaUrl,
-        college: userData.college.name,
+    console.log(isSame);
+
+    if (isSame) {
+      await FriendModel.deleteOne({
+        targetUser: req.params.friendId,
+        user: req.user.user.id,
+      });
+      usertarget.friendList.shift({
+        friend: req.params.requestId,
       });
       usertarget.friendCount = usertarget.friendList.length;
-      usertarget.save();
-      res.json({
-        status: true,
-        data: data,
+      await usertarget.save();
+
+      res.json({ status: true, message: "friend request Cancelled" });
+    } else {
+      const newFriend = new FriendModel({
+        user: userData.id,
+        targetUser: usertarget.id,
+        connect: false,
+        blocked: false,
       });
-    });
+      console.log(newFriend);
+      await newFriend.save().then((data) => {
+        usertarget.friendList.unshift({
+          friend: data.id,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          MediaUrl: userData.MediaUrl,
+          college: userData.college.name,
+        });
+        usertarget.friendCount = usertarget.friendList.length;
+        usertarget.save();
+        res.json({
+          status: true,
+          data: data,
+        });
+      });
+    }
   } catch (err) {
     res.json({ status: false, message: "request not send" });
   }
@@ -211,6 +255,7 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
     var userData;
 
     const isSame = await FriendModel.findById({ _id: req.params.requestId });
+
     if (isSame && isSame.connect) {
       res.json({ status: true, message: "already friend" });
     } else {
@@ -233,10 +278,6 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
           status: true,
         });
 
-      console.log(userData, usertarget);
-      // if (req.user.user.id.toString() !== isSame.targetUser.toString()) {
-      //   res.json({ status: true, message: "error please try again" });
-      // }
       if (!req.body.requestValue) {
         await FriendModel.deleteOne({
           _id: req.params.requestId,
