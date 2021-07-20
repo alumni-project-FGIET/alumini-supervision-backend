@@ -442,59 +442,62 @@ router.delete("/delete/:alumniId", auth, async (req, res) => {
   }
 });
 
-// router.post("/send-email", async (req, res) => {
-//   const { email } = req.body;
-//   try {
-//     const alumniDet = await Alumni.find({ email: email });
+router.post("/send-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const alumniDet = await Alumni.find({ email: email });
 
-//     if (alumniDet) {
-//       var smtpTransport = await nodemailer.createTransport({
-//         service: "Gmail",
-//         auth: {
-//           user: "singhnitesh9001@gmail.com",
-//           pass: `${process.env.EMAIL_PASSWORD}`,
-//         },
-//       });
-//       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
-//       ramdomNo = String(ramdomNo);
-//       ramdomNo = ramdomNo.substring(0, 4);
-//       console.log(ramdomNo, alumniDet[0]._id);
-//       var mailOptions = {
-//         to: email,
-//         from: "singhnitesh9001@gmail.com",
-//         subject: "Verify Account",
-//         html:
-//           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-//           ramdomNo +
-//           "</h1></div>",
-//       };
-//       let info = await smtpTransport.sendMail(mailOptions, function (err) {
-//         console.log("err", err, alumniDet);
-//         if (!err) {
-//           res.json({ status: true, message: "Email Send to mail" });
-//         } else {
-//           res.json({ status: false, message: "Email not Send to mail" });
-//         }
-//       });
-//       const alumniData = {
-//         verifyToken: ramdomNo,
-//       };
-//       const changealumni = await Alumni.findByIdAndUpdate(
-//         {
-//           _id: alumniDet[0]._id,
-//         },
-//         {
-//           $set: {
-//             verifyToken: ramdomNo,
-//           },
-//         },
-//         { upsert: true }
-//       );
-//     }
-//   } catch (err) {
-//     res.json({ message: err });
-//   }
-// });
+    if (alumniDet) {
+      var smtpTransport = await nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        auth: {
+          user: "singhnitesh9001@gmail.com",
+          pass: `${process.env.EMAIL_PASSWORD}`,
+        },
+      });
+      var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+      ramdomNo = String(ramdomNo);
+      ramdomNo = ramdomNo.substring(0, 4);
+      const alumniData = {
+        verifyToken: ramdomNo,
+      };
+      await Alumni.findByIdAndUpdate(
+        {
+          _id: alumniDet[0]._id,
+        },
+        {
+          $set: {
+            verifyToken: ramdomNo,
+          },
+        },
+        { upsert: true, message: "mail send " }
+      );
+      console.log(ramdomNo, alumniDet[0]._id);
+
+      var mailOptions = {
+        to: email,
+        from: "singhnitesh9001@gmail.com",
+        subject: "Verify Account",
+        html:
+          "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+          ramdomNo +
+          "</h1></div>",
+      };
+      smtpTransport.sendMail(mailOptions, function (err) {
+        console.log("err", err, alumniDet);
+        if (!err) {
+          res.json({ status: true, message: "Email Send to mail" });
+        } else {
+          res.json({ status: false, message: "Email not Send to mail" });
+        }
+      });
+    }
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
+});
+
 router.post("/verify", auth, async (req, res) => {
   const { email, tokenValue } = req.body;
   try {
@@ -517,6 +520,7 @@ router.post("/verify", auth, async (req, res) => {
     res.json({ status: false, message: "Not verified" });
   }
 });
+
 // router.post("/verify", async (req, res) => {
 //   const { email, tokenValue } = req.body;
 //   try {

@@ -29,6 +29,7 @@ router.get("/get-admin", adminAuth, async (req, res) => {
     res.json({ status: false, message: "Data not Found" });
   }
 });
+
 //GET ONE College BY ID
 router.get("/get/:collegeId", async (req, res) => {
   console.log(req.params.collegeId);

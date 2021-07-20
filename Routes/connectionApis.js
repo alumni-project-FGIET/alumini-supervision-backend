@@ -79,7 +79,6 @@ router.get("/myfriend", auth, async (req, res) => {
       .populate("college");
 
     var data = alumniList.concat(userList);
-    const datatest = data;
     var dataNew = [];
 
     for (var k in isfriend) {
