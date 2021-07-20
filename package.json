@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/alumni-project-FGIET/alumini-supervision-backend.git#readme",
   "dependencies": {
+    "@sendgrid/mail": "^7.4.5",
     "aws-sdk": "^2.890.0",
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",

@@ -13,6 +13,8 @@ const crypto = require("crypto");
 const auth = require("../Middleware/auth");
 const adminAuth = require("../Middleware/adminAuth");
 const alumniAuth = require("../Middleware/alumniAuth");
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.APIKEYGRIDMAIL);
 
 //GET ALL College LIST
 router.get("/get", auth, async (req, res) => {
@@ -448,14 +450,14 @@ router.post("/send-email", async (req, res) => {
     const alumniDet = await Alumni.find({ email: email });
 
     if (alumniDet) {
-      var smtpTransport = await nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        auth: {
-          user: "singhnitesh9001@gmail.com",
-          pass: `${process.env.EMAIL_PASSWORD}`,
-        },
-      });
+      // var smtpTransport = await nodemailer.createTransport({
+      //   host: "smtp.gmail.com",
+      //   port: 465,
+      //   auth: {
+      //     user: "singhnitesh9001@gmail.com",
+      //     pass: `${process.env.EMAIL_PASSWORD}`,
+      //   },
+      // });
       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
       ramdomNo = String(ramdomNo);
       ramdomNo = ramdomNo.substring(0, 4);
@@ -484,14 +486,21 @@ router.post("/send-email", async (req, res) => {
           ramdomNo +
           "</h1></div>",
       };
-      smtpTransport.sendMail(mailOptions, function (err) {
-        console.log("err", err, alumniDet);
-        if (!err) {
-          res.json({ status: true, message: "Email Send to mail" });
-        } else {
-          res.json({ status: false, message: "Email not Send to mail" });
-        }
-      });
+      sg.send(mailOptions)
+        .then((res) => {
+          if (!res) {
+            res.json({ status: true, message: "Email Send to mail" });
+          } else {
+            res.json({ status: false, message: "Email not Send to mail" });
+          }
+        })
+        .catch((err) => {
+          res.json({
+            status: false,
+            message: "Email not Send to mail",
+            err: err,
+          });
+        });
     }
   } catch (err) {
     res.json({ status: false, message: err });
