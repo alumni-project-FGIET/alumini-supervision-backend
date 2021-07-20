@@ -5,7 +5,7 @@ const citySchema = new Schema(
   {
     name: {
       type: String,
-      required: true,
+      // required: true,
       unique: true,
     },
     status: {

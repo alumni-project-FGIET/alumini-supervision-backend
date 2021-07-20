@@ -2,20 +2,18 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
-const Country = require("../Modal/Location/CountryModel");
+const country = require("../Modal/Location/countryModel");
 const State = require("../Modal/Location/StateModel");
 const City = require("../Modal/Location/CityModel");
 const adminAuth = require("../Middleware/adminAuth");
-const { now } = require("mongoose");
-
-////////////COUNTRYIES//////////////
+const { ObjectId } = require("mongodb");
 
 //GET ALL  LIST
 router.get("/country/get", async (req, res) => {
   try {
-    const countryList = await Country.find().select(
-      "name sortname status createdAt updatedAt"
-    );
+    const countryList = await country
+      .find()
+      .select("name sortname status createdAt updatedAt");
     res.status(200).json({ status: true, data: countryList });
   } catch (err) {
     res.status(400).json({ status: false, message: "Data not Found" });
@@ -26,9 +24,9 @@ router.get("/country/get", async (req, res) => {
 router.get("/country/:countryId", async (req, res) => {
   console.log(req.params.countryId);
   try {
-    const postDet = await Country.findById(req.params.countryId).select(
-      "name sortname status createdAt updatedAt"
-    );
+    const postDet = await country
+      .findById(req.params.countryId)
+      .select("name sortname status createdAt updatedAt");
     res.json({ status: true, data: postDet });
   } catch (err) {
     res.json({ message: err });
@@ -36,18 +34,18 @@ router.get("/country/:countryId", async (req, res) => {
 });
 
 router.post("/country/add", adminAuth, (req, res) => {
-  const newCountry = new Country({
+  const newcountry = new country({
     sortname: req.body.sortname,
     name: req.body.name,
     status: true,
   });
-  newCountry
+  newcountry
     .save()
     .then((data) => {
       res.json({
         status: true,
         message: "Data added successfully",
-        data: newCountry,
+        data: newcountry,
       });
     })
     .catch((err) => {
@@ -68,7 +66,7 @@ router.post("/country/add", adminAuth, (req, res) => {
 router.delete("/country/delete/:countryId", adminAuth, async (req, res) => {
   console.log(req.params.countryId);
   try {
-    const removePost = await Country.remove({
+    const removePost = await country.remove({
       _id: req.params.countryId,
     });
     res.json(removePost);
@@ -81,7 +79,7 @@ router.patch("/country/update/:countryId", adminAuth, async (req, res) => {
   console.log(req.params.countryId);
   try {
     const udpateData = req.body;
-    const changeCountry = await Country.findOneAndUpdate(
+    const changecountry = await country.findOneAndUpdate(
       {
         _id: req.params.countryId,
       },
@@ -90,7 +88,7 @@ router.patch("/country/update/:countryId", adminAuth, async (req, res) => {
       },
       { upsert: true }
     );
-    res.json({ status: true, data: changeCountry });
+    res.json({ status: true, data: changecountry });
   } catch (err) {
     res.json({ message: err });
   }
@@ -304,319 +302,811 @@ router.patch("/city/update/:cityId", adminAuth, async (req, res) => {
 
 //bulk
 
-router.post("/bulk/add/:tableName", async (req, res) => {
+router.post("/bulk/add", async (req, res) => {
   try {
-    const uri = process.env.DBURL;
-    console.log("ej", uri, req.params.tableName, process.env.DBNAME);
-    const client = new MongoClient(uri);
-    await client.connect();
-    const database = client.db(process.env.DBNAME);
-    console.log(database);
-    const nestate = database.collection(req.params.tableName);
-    const options = { ordered: true };
-    const docs = [
+    // await client.connect();
+    // const database = client.db("myAlumni");
+    // const nestate = database.collection("states");
+    // const options = { ordered: true };
+    // const docs = [
+    //   {
+    //     name: "Andaman and Nicobar Islands",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "AN",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Andhra Pradesh",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "AP",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Arunachal Pradesh",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "AR",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Assam",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "AS",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Bihar",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "BR",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Chandigarh",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "CH",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Chhattisgarh",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "CT",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Dadra and Nagar Haveli",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "DN",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Daman and Diu",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "DD",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Delhi",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "DL",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Goa",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "GA",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Gujarat",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "GJ",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Haryana",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "HR",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Himachal Pradesh",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "HP",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Jammu and Kashmir",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "JK",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Jharkhand",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "JH",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Karnataka",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "KA",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Kerala",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "KL",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Lakshadweep",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "LD",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Madhya Pradesh",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "MP",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Maharashtra",
+    //     countryId: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "MH",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Manipur",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "MN",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Meghalaya",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "ML",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Mizoram",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "MZ",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Nagaland",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "NL",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Orissa",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "OR",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Pondicherry",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "PY",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Punjab",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "PB",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Rajasthan",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "RJ",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Sikkim",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "SK",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Tamil Nadu",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "TN",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Telangana",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "TG",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Tripura",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "TR",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "Uttarakhand",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "UT",
+    //     status: true,
+    //   },
+    //   {
+    //     name: "West Bengal",
+    //     country: ObjectId("60f69e930f318c61a4aded1d"),
+    //     sortname: "WB",
+    //     status: true,
+    //   },
+    // ];
+    const cites = [
       {
-        name: "Andaman and Nicobar Islands",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "AN",
+        name: "Lucknow",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Andhra Pradesh",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "AP",
+        name: "Kanpur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Arunachal Pradesh",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "AR",
+        name: "Firozabad",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Assam",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "AS",
+        name: "Agra",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Bihar",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "BR",
+        name: "Meerut",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Chandigarh",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "CH",
+        name: "Varanasi",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Chhattisgarh",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "CT",
+        name: "Allahabad",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Dadra and Nagar Haveli",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "DN",
+        name: "Amroha",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Daman and Diu",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "DD",
+        name: "Moradabad",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Delhi",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "DL",
+        name: "Aligarh",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Goa",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "GA",
+        name: "Saharanpur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      { status: true, state: ObjectId("60f69f55508c224b88f51f4e") },
+      {
+        name: "Loni",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Gujarat",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "GJ",
+        name: "Jhansi",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Haryana",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "HR",
+        name: "Shahjahanpur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Himachal Pradesh",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "HP",
+        name: "Rampur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Jammu and Kashmir",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "JK",
+        name: "Modinagar",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Jharkhand",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "JH",
+        name: "Hapur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Karnataka",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "KA",
+        name: "Etawah",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Kerala",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "KL",
+        name: "Sambhal",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Lakshadweep",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "LD",
+        name: "Orai",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Madhya Pradesh",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "MP",
+        name: "Bahraich",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Maharashtra",
-        countryId: "60f69e930f318c61a4aded1d",
-        sortname: "MH",
+        name: "Unnao",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Manipur",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "MN",
+        name: "Lakhimpur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Meghalaya",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "ML",
+        name: "Sitapur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Mizoram",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "MZ",
+        name: "Lalitpur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Nagaland",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "NL",
+        name: "Pilibhit",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Orissa",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "OR",
+        name: "Chandausi",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Pondicherry",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "PY",
+        name: "Hardoi ",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Punjab",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "PB",
+        name: "Azamgarh",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Rajasthan",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "RJ",
+        name: "Khair",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Sikkim",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "SK",
+        name: "Sultanpur",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Tamil Nadu",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "TN",
+        name: "Tanda",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Telangana",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "TG",
+        name: "Nagina",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Tripura",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "TR",
+        name: "Shamli",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "Uttarakhand",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "UT",
+        name: "Najibabad",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
       {
-        name: "West Bengal",
-        country: "60f69e930f318c61a4aded1d",
-        sortname: "WB",
+        name: "Shikohabad",
         status: true,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sikandrabad",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Shahabad, Hardoi",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Pilkhuwa",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Renukoot",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Vrindavan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Ujhani",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Laharpur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Tilhar",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sahaswan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Rath",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sherkot",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Kalpi",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Tundla",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sandila",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Nanpara",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sardhana",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Nehtaur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Seohara",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Padrauna",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Mathura",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Thakurdwara",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Nawabganj",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Siana",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Noorpur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sikandra Rao",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Puranpur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Rudauli",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Thana Bhawan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Palia Kalan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      { status: true, state: ObjectId("60f69f55508c224b88f51f4e") },
+      {
+        name: "Nautanwa",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Zamania",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Shikarpur, Bulandshahr",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Naugawan Sadat",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Fatehpur Sikri",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Shahabad, Rampur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Robertsganj",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Utraula",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sadabad",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Rasra",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Lar",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Lal Gopalganj Nindaura",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sirsaganj",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Pihani",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Shamsabad, Agra",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Rudrapur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Soron",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "SUrban Agglomerationr",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Samdhan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sahjanwa",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Rampur Maniharan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sumerpur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Shahganj",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Tulsipur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Tirwaganj",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "PurqUrban Agglomerationzi",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Shamsabad, Farrukhabad",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Warhapur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Powayan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sandi",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Achhnera",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Naraura",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Nakur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sahaspur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Safipur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Reoti",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sikanderpur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      { status: true, state: ObjectId("60f69f55508c224b88f51f4e") },
+      {
+        name: "Sirsi",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Purwa",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Parasi",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Lalganj",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Phulpur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Shishgarh",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Sahawar",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Samthar",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Pukhrayan",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Obra",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Niwai",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
+      },
+      {
+        name: "Mirzapur",
+        status: true,
+        state: ObjectId("60f69f55508c224b88f51f4e"),
       },
     ];
-    await nestate.insertMany(docs, options);
+    await City.insertMany(cites);
 
-    // await newstate
-    //   .save()
+    // await nestate
+    //   .insertMany(docs, options)
     //   .then((data) => {
     //     res.json({
     //       status: true,
     //       message: "Data added successfully",
-    //       data: newstate,
     //     });
     //   })
     //   .catch((err) => {
     //     console.log(err);
-    //     if (err.code === 11000) {
-    //       res.json({
-    //         status: false,
-    //         message: "Validation error `name` should be unique",
-    //       });
-    //     } else {
-    //       res.json({ status: false, message: "Data not added" });
-    //     }
     //   });
   } catch (err) {
     res.send({ err: err, message: "Data is not added" });

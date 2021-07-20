@@ -1,12 +1,13 @@
 const express = require("express");
 const { stringify } = require("uuid");
+const alumniAuth = require("../Middleware/alumniAuth");
 const auth = require("../Middleware/auth");
 const router = express.Router();
 const AlumniModel = require("../Modal/AlumniModel");
 const FriendModel = require("../Modal/FriendModel");
 const UserModel = require("../Modal/UserModel");
 
-router.get("/get", auth, async (req, res) => {
+router.get("/get", alumniAuth, async (req, res) => {
   try {
     var dataNew;
     const alumniList = await AlumniModel.find({ status: true })
@@ -17,24 +18,21 @@ router.get("/get", auth, async (req, res) => {
       .select("firstName lastName email verified MediaUrl college createdAt")
       .populate("college");
 
-    var data = alumniList.concat(userList);
-
     let isfriend = await FriendModel.find({
       user: req.user.user.id,
     }).select("targetUser");
     console.log(isfriend);
 
     // const datatest = data;
+    var data = alumniList.concat(userList);
 
     if (isfriend.length == 0) {
-      console.log("ehhlo");
       dataNew = data.filter(function (n, i) {
-        return n._id.toString() !== req.user.user.id.toString();
+        return n.id.toString() !== req.user.user.id.toString();
       });
       res.json({ status: true, data: dataNew });
     } else {
-      console.log("ehhlo2");
-      for (var k in isfriend) {
+      isfriend.forEach((element, k) => {
         dataNew = data.filter(function (n, i) {
           return (
             n._id.toString() !== isfriend[k].targetUser.toString() &&
@@ -42,8 +40,7 @@ router.get("/get", auth, async (req, res) => {
           );
         });
         data = dataNew;
-        console.log(dataNew);
-      }
+      });
       res.json({ status: true, data: dataNew });
     }
   } catch (err) {
@@ -169,26 +166,26 @@ router.get("/suggest", auth, async (req, res) => {
     var data = alumniList.concat(userList);
     var dataNew;
     if (isfriend.length == 0) {
-      console.log("ehhlo");
-      dataNew = data.filter(function (n, i) {
+      dataNew = data.filter((n, i) => {
         return (
-          n._id.toString() !== req.user.user.id.toString() &&
+          n._id !== req.user.user.id &&
           n.college.collegeCode === usercode.college.collegeCode
         );
       });
       res.json({ status: true, data: dataNew });
     } else {
-      console.log("ehhlo2");
       for (var k in isfriend) {
-        dataNew = data.filter(function (n, i) {
-          return (
-            n._id !== isfriend[k].targetUser &&
-            n.college.collegeCode === usercode.college.collegeCode &&
-            n._id !== req.user.user.id
-          );
+        isfriend.forEach((element, k) => {
+          dataNew = data.filter(function (n, i) {
+            return (
+              n._id.toString() !== isfriend[k].targetUser.toString() &&
+              n._id.toString() !== req.user.user.id.toString() &&
+              n.college.collegeCode === usercode.college.collegeCode
+            );
+          });
+          data = dataNew;
         });
         data = dataNew;
-        console.log(dataNew);
       }
       res.json({ status: true, data: dataNew });
     }

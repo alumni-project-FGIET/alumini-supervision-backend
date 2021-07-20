@@ -55,7 +55,6 @@ router.post(
       }
       if (admin.status) {
         const isMatch = await bcrypt.compare(password, admin.password);
-        console.log("not", admin.password, isMatch);
         if (!isMatch) {
           return res.json({ errors: [{ message: "Invalid Credentials" }] });
         }
