@@ -13,8 +13,6 @@ const crypto = require("crypto");
 const auth = require("../Middleware/auth");
 const adminAuth = require("../Middleware/adminAuth");
 const alumniAuth = require("../Middleware/alumniAuth");
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.APIKEYGRIDMAIL);
 
 //GET ALL College LIST
 router.get("/get", auth, async (req, res) => {
@@ -447,36 +445,33 @@ router.delete("/delete/:alumniId", auth, async (req, res) => {
 router.post("/send-email", async (req, res) => {
   const { email } = req.body;
   try {
-    const alumniDet = await Alumni.find({ email: email });
-
+    const alumniDet = await Alumni.findOne({ email: email });
     if (alumniDet) {
-      // var smtpTransport = await nodemailer.createTransport({
-      //   host: "smtp.gmail.com",
-      //   port: 465,
-      //   auth: {
-      //     user: "singhnitesh9001@gmail.com",
-      //     pass: `${process.env.EMAIL_PASSWORD}`,
-      //   },
-      // });
       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
       ramdomNo = String(ramdomNo);
       ramdomNo = ramdomNo.substring(0, 4);
-      const alumniData = {
-        verifyToken: ramdomNo,
-      };
+
       await Alumni.findByIdAndUpdate(
         {
-          _id: alumniDet[0]._id,
+          _id: alumniDet._id,
         },
         {
           $set: {
             verifyToken: ramdomNo,
           },
         },
-        { upsert: true, message: "mail send " }
+        { upsert: true }
       );
-      console.log(ramdomNo, alumniDet[0]._id);
-
+      console.log(ramdomNo, alumniDet._id);
+      var smtpTransport = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: "singhnitesh9001@gmail.com",
+          pass: `${process.env.EMAIL_PASSWORD}`,
+        },
+      });
       var mailOptions = {
         to: email,
         from: "singhnitesh9001@gmail.com",
@@ -486,21 +481,14 @@ router.post("/send-email", async (req, res) => {
           ramdomNo +
           "</h1></div>",
       };
-      sg.send(mailOptions)
-        .then((res) => {
-          if (!res) {
-            res.json({ status: true, message: "Email Send to mail" });
-          } else {
-            res.json({ status: false, message: "Email not Send to mail" });
-          }
-        })
-        .catch((err) => {
-          res.json({
-            status: false,
-            message: "Email not Send to mail",
-            err: err,
-          });
-        });
+      smtpTransport.sendMail(mailOptions, function (err) {
+        console.log("err", err, alumniDet);
+        if (!err) {
+          res.json({ status: true, message: "Email Send to mail" });
+        } else {
+          res.json({ status: false, message: "Email not Send to mail" });
+        }
+      });
     }
   } catch (err) {
     res.json({ status: false, message: err });

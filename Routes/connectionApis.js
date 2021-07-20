@@ -8,10 +8,7 @@ const UserModel = require("../Modal/UserModel");
 
 router.get("/get", auth, async (req, res) => {
   try {
-    var isfriend = await FriendModel.find({
-      user: req.user.user.id,
-    }).select("targetUser");
-
+    var dataNew;
     const alumniList = await AlumniModel.find({ status: true })
       .select("firstName lastName email verified MediaUrl college createdAt")
       .populate("college");
@@ -21,16 +18,34 @@ router.get("/get", auth, async (req, res) => {
       .populate("college");
 
     var data = alumniList.concat(userList);
-    const datatest = data;
-    var dataNew;
 
-    for (var k in isfriend) {
+    let isfriend = await FriendModel.find({
+      user: req.user.user.id,
+    }).select("targetUser");
+    console.log(isfriend);
+
+    // const datatest = data;
+
+    if (isfriend.length == 0) {
+      console.log("ehhlo");
       dataNew = data.filter(function (n, i) {
-        return n._id.toString() !== isfriend[k].targetUser.toString();
+        return n._id.toString() !== req.user.user.id.toString();
       });
-      data = dataNew;
+      res.json({ status: true, data: dataNew });
+    } else {
+      console.log("ehhlo2");
+      for (var k in isfriend) {
+        dataNew = data.filter(function (n, i) {
+          return (
+            n._id.toString() !== isfriend[k].targetUser.toString() &&
+            n._id.toString() !== req.user.user.id.toString()
+          );
+        });
+        data = dataNew;
+        console.log(dataNew);
+      }
+      res.json({ status: true, data: dataNew });
     }
-    res.json({ status: true, data: data });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
   }
@@ -138,8 +153,8 @@ router.get("/suggest", auth, async (req, res) => {
       })
         .select("firstName lastName email verified MediaUrl college createdAt")
         .populate("college");
-    console.log(usercode);
-    var isfriend = await FriendModel.find({
+
+    let isfriend = await FriendModel.find({
       user: req.user.user.id,
     }).select("targetUser");
 
@@ -153,25 +168,38 @@ router.get("/suggest", auth, async (req, res) => {
 
     var data = alumniList.concat(userList);
     var dataNew;
-
-    for (var k in isfriend) {
+    if (isfriend.length == 0) {
+      console.log("ehhlo");
       dataNew = data.filter(function (n, i) {
         return (
-          n._id.toString() !== isfriend[k].targetUser.toString() &&
-          n.college.collegeCode === usercode.college.collegeCode &&
-          n._id !== req.user.user.id
+          n._id.toString() !== req.user.user.id.toString() &&
+          n.college.collegeCode === usercode.college.collegeCode
         );
       });
-      data = dataNew;
+      res.json({ status: true, data: dataNew });
+    } else {
+      console.log("ehhlo2");
+      for (var k in isfriend) {
+        dataNew = data.filter(function (n, i) {
+          return (
+            n._id !== isfriend[k].targetUser &&
+            n.college.collegeCode === usercode.college.collegeCode &&
+            n._id !== req.user.user.id
+          );
+        });
+        data = dataNew;
+        console.log(dataNew);
+      }
+      res.json({ status: true, data: dataNew });
     }
+
     // const dataFilter = data.filter(function (d, i) {
     //   return (
     //     d.college.collegeCode === userCode[0].college.collegeCode &&
     //     d._id !== req.user.user.id
     //   );
     // });
-
-    res.json({ status: true, data: dataNew });
+    // res.json({ status: true, data: dataNew });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
   }
