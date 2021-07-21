@@ -9,36 +9,54 @@ const UserModel = require("../Modal/UserModel");
 
 router.get("/get", alumniAuth, async (req, res) => {
   try {
-    var dataNew;
-    const alumniList = await AlumniModel.find({ status: true })
-      .select("firstName lastName email verified MediaUrl college createdAt")
-      .populate("college");
+    var usercode = await AlumniModel.findById({
+      _id: req.user.user.id,
+    });
 
-    const userList = await UserModel.find({ status: true })
-      .select("firstName lastName email verified MediaUrl college createdAt")
-      .populate("college");
+    if (!usercode)
+      usercode = await UserModel.findById({
+        _id: req.user.user.id,
+      });
 
-    let isfriend = await FriendModel.find({
+    var isfriend = await FriendModel.find({
       user: req.user.user.id,
     }).select("targetUser");
-    console.log(isfriend);
 
-    // const datatest = data;
+    var isfriends = await FriendModel.find({
+      targetUser: req.user.user.id,
+    }).select("user");
+    var dataFriend = isfriends.concat(isfriend);
+    console.log(dataFriend);
+
+    const alumniList = await AlumniModel.find({
+      status: true,
+    })
+      .select("firstName lastName email verified MediaUrl college createdAt")
+      .populate("college");
+
+    const userList = await UserModel.find({
+      status: true,
+    })
+      .select("firstName lastName email verified MediaUrl college createdAt")
+      .populate("college");
+
     var data = alumniList.concat(userList);
-
-    if (isfriend.length == 0) {
+    var dataNew;
+    if (dataFriend.length === 0) {
       dataNew = data.filter(function (n, i) {
-        return n.id.toString() !== req.user.user.id.toString();
+        return n._id.toString() !== req.user.user.id.toString();
       });
       res.json({ status: true, data: dataNew });
     } else {
-      isfriend.forEach((element, k) => {
+      dataFriend.map((d, k) => {
         dataNew = data.filter(function (n, i) {
+          var stor = d.targetUser ? d.targetUser.toString() : d.user.toString();
           return (
-            n._id.toString() !== isfriend[k].targetUser.toString() &&
+            n._id.toString() !== stor &&
             n._id.toString() !== req.user.user.id.toString()
           );
         });
+        console.log(dataNew, k);
         data = dataNew;
       });
       res.json({ status: true, data: dataNew });
@@ -77,29 +95,59 @@ router.post("/search/:query", async (req, res) => {
 
 router.get("/myfriend", auth, async (req, res) => {
   try {
+    var usercode = await AlumniModel.findById({
+      _id: req.user.user.id,
+    });
+
+    if (!usercode)
+      usercode = await UserModel.findById({
+        _id: req.user.user.id,
+      });
+
     var isfriend = await FriendModel.find({
       user: req.user.user.id,
       connect: true,
     }).select("targetUser");
 
-    const alumniList = await AlumniModel.find({ status: true })
+    var isfriends = await FriendModel.find({
+      targetUser: req.user.user.id,
+      connect: true,
+    }).select("user");
+    var dataFriend = isfriends.concat(isfriend);
+
+    const alumniList = await AlumniModel.find({
+      status: true,
+      college: usercode.college,
+    })
       .select("firstName lastName email verified MediaUrl college createdAt")
       .populate("college");
 
-    const userList = await UserModel.find({ status: true })
+    const userList = await UserModel.find({
+      status: true,
+      college: usercode.college,
+    })
       .select("firstName lastName email verified MediaUrl college createdAt")
       .populate("college");
 
     var data = alumniList.concat(userList);
-    var dataNew = [];
-
-    for (var k in isfriend) {
-      datatopush = data.filter((n, i) => {
-        return n._id.toString() === isfriend[k].targetUser.toString();
+    const dataNew = [];
+    if (dataFriend.length === 0) {
+      dataNew = data.filter(function (n, i) {
+        return n._id.toString() !== req.user.user.id.toString();
       });
-      dataNew.push(datatopush[0]);
+      res.json({ status: true, data: dataNew });
+    } else {
+      dataFriend.map((d, k) => {
+        datatopush = data.filter(function (n, i) {
+          var stor = d.targetUser ? d.targetUser.toString() : d.user.toString();
+          return n._id.toString() === stor;
+        });
+        console.log(dataNew[0]);
+        dataNew.push(datatopush[0]);
+        // data = datatopush;
+      });
+      res.json({ status: true, data: dataNew });
     }
-    res.json({ status: true, data: dataNew });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
   }
@@ -141,62 +189,58 @@ router.get("/suggest", auth, async (req, res) => {
   try {
     var usercode = await AlumniModel.findById({
       _id: req.user.user.id,
-    })
-      .select("firstName lastName email verified MediaUrl college createdAt")
-      .populate("college");
+    });
+
     if (!usercode)
       usercode = await UserModel.findById({
         _id: req.user.user.id,
-      })
-        .select("firstName lastName email verified MediaUrl college createdAt")
-        .populate("college");
+      });
 
-    let isfriend = await FriendModel.find({
+    var isfriend = await FriendModel.find({
       user: req.user.user.id,
     }).select("targetUser");
 
-    const alumniList = await AlumniModel.find({ status: true })
+    var isfriends = await FriendModel.find({
+      targetUser: req.user.user.id,
+    }).select("user");
+    var dataFriend = isfriends.concat(isfriend);
+    console.log(dataFriend);
+
+    const alumniList = await AlumniModel.find({
+      status: true,
+      college: usercode.college,
+    })
       .select("firstName lastName email verified MediaUrl college createdAt")
       .populate("college");
 
-    const userList = await UserModel.find({ status: true })
+    const userList = await UserModel.find({
+      status: true,
+      college: usercode.college,
+    })
       .select("firstName lastName email verified MediaUrl college createdAt")
       .populate("college");
 
     var data = alumniList.concat(userList);
     var dataNew;
-    if (isfriend.length == 0) {
-      dataNew = data.filter((n, i) => {
-        return (
-          n._id !== req.user.user.id &&
-          n.college.collegeCode === usercode.college.collegeCode
-        );
+    if (dataFriend.length === 0) {
+      dataNew = data.filter(function (n, i) {
+        return n._id.toString() !== req.user.user.id.toString();
       });
       res.json({ status: true, data: dataNew });
     } else {
-      for (var k in isfriend) {
-        isfriend.forEach((element, k) => {
-          dataNew = data.filter(function (n, i) {
-            return (
-              n._id.toString() !== isfriend[k].targetUser.toString() &&
-              n._id.toString() !== req.user.user.id.toString() &&
-              n.college.collegeCode === usercode.college.collegeCode
-            );
-          });
-          data = dataNew;
+      dataFriend.map((d, k) => {
+        dataNew = data.filter(function (n, i) {
+          var stor = d.targetUser ? d.targetUser.toString() : d.user.toString();
+          return (
+            n._id.toString() !== stor &&
+            n._id.toString() !== req.user.user.id.toString()
+          );
         });
+        console.log(dataNew, k);
         data = dataNew;
-      }
+      });
       res.json({ status: true, data: dataNew });
     }
-
-    // const dataFilter = data.filter(function (d, i) {
-    //   return (
-    //     d.college.collegeCode === userCode[0].college.collegeCode &&
-    //     d._id !== req.user.user.id
-    //   );
-    // });
-    // res.json({ status: true, data: dataNew });
   } catch (err) {
     res.json({ status: false, message: "Data not Found" });
   }
@@ -207,11 +251,11 @@ router.get("/pending", auth, async (req, res) => {
     const send = await FriendModel.find({
       user: req.user.user.id,
       connect: false,
-    });
+    }).select("user targetUser target users connect blocked createdAt");
     const received = await FriendModel.find({
       targetUser: req.user.user.id,
       connect: false,
-    });
+    }).select("user targetUser target users connect blocked createdAt");
     // var send = await FriendModel.find({
     //   user: req.user.user.id,
     //   connect: false,
@@ -261,16 +305,17 @@ router.get("/pending", auth, async (req, res) => {
 router.post("/addFriend/:friendId", auth, async (req, res) => {
   try {
     var usertarget;
+    var users;
     const isSame = await FriendModel.findOne({
       targetUser: req.params.friendId,
       user: req.user.user.id,
-    })
-      .select("firstName lastName email verified MediaUrl college createdAt")
-      .populate("college");
+    });
     usertarget = await AlumniModel.findOne({
       _id: req.params.friendId,
       status: true,
-    });
+    })
+      .select("firstName lastName email verified MediaUrl college createdAt")
+      .populate("college");
     if (!usertarget)
       usertarget = await UserModel.findOne({
         _id: req.params.friendId,
@@ -278,31 +323,25 @@ router.post("/addFriend/:friendId", auth, async (req, res) => {
       })
         .select("firstName lastName email verified MediaUrl college createdAt")
         .populate("college");
-
-    // var userData = await AlumniModel.findOne({
-    //   _id: req.user.user.id,
-    //   status: true,
-    // })
-    //   .select("firstName lastName email verified MediaUrl college createdAt")
-    //   .populate("college");
-    // if (!userData)
-    //   userData = await UserModel.findOne({
-    //     _id: req.user.user.id,
-    //     status: true,
-    //   })
-    //     .select("firstName lastName email verified MediaUrl college createdAt")
-    //     .populate("college");
+    user = await AlumniModel.findOne({
+      _id: req.user.user.id,
+      status: true,
+    })
+      .select("firstName lastName email verified MediaUrl college createdAt")
+      .populate("college");
+    if (!user)
+      usertarget = await UserModel.findOne({
+        _id: req.user.user.id,
+        status: true,
+      })
+        .select("firstName lastName email verified MediaUrl college createdAt")
+        .populate("college");
 
     if (isSame) {
       await FriendModel.deleteOne({
         targetUser: req.params.friendId,
         user: req.user.user.id,
       });
-      // usertarget.friendList.shift({
-      //   friend: req.params.requestId,
-      // });
-      // usertarget.friendCount = usertarget.friendList.length;
-      // await usertarget.save();
 
       res.json({ status: true, message: "friend request Cancelled" });
     } else {
@@ -318,6 +357,13 @@ router.post("/addFriend/:friendId", auth, async (req, res) => {
           MediaUrl: usertarget.MediaUrl,
           college: usertarget.college.name,
           MediaUrl: usertarget.MediaUrl,
+        },
+        users: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          MediaUrl: user.MediaUrl,
+          college: user.college.name,
+          MediaUrl: user.MediaUrl,
         },
       });
       console.log(newFriend);

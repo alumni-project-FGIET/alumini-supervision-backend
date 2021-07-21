@@ -26,6 +26,23 @@ const friendschema = Schema(
         type: String,
       },
     },
+    users: {
+      firstName: {
+        type: String,
+      },
+      lastName: {
+        type: String,
+      },
+      MediaUrl: {
+        type: String,
+      },
+      college: {
+        type: String,
+      },
+      MediaUrl: {
+        type: String,
+      },
+    },
     connect: {
       type: Boolean,
     },
