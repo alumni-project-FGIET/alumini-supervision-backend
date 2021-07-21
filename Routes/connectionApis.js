@@ -466,7 +466,7 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
         // userData.save();
         res.json({
           status: true,
-          message: "request accepted",
+          data: "request accepted",
         });
       }
     }
@@ -499,7 +499,7 @@ router.patch("/blockUser/:userId", auth, async (req, res) => {
     );
     res.json({
       status: true,
-      message: "user is blocked ",
+      data: "user is blocked ",
     });
   } catch (err) {
     res.json({ status: false, message: "something went wrong" });
