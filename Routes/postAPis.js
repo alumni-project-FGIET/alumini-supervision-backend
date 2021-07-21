@@ -127,7 +127,6 @@ router.get("/likes-Comment/:postId", auth, async (req, res) => {
   }
 });
 
-
 router.get("/get", auth, async (req, res) => {
   try {
     const postList = await Post.find({ status: true })
@@ -179,7 +178,6 @@ router.get("/get", auth, async (req, res) => {
     res.json({ status: false, message: "Data not Found" });
   }
 });
-
 
 router.get("/my", auth, async (req, res) => {
   try {
@@ -388,7 +386,7 @@ router.patch("/reply/:comment_id", auth, async (req, res) => {
         comment.save();
       });
     }
-    res.json({ status: true, message: "Reply added to comment" });
+    res.json({ status: true, data: "Reply added to comment" });
   } catch (e) {
     console.log(e);
     res.status(500).json({ status: false, message: "Server Error", errors: e });
@@ -443,7 +441,7 @@ router.patch("/comments/edit/:comment_id", auth, async (req, res) => {
       },
       function (err, doc) {
         if (!err)
-          return res.json({ status: true, message: "Edited successfully" });
+          return res.json({ status: true, data: "Edited successfully" });
       }
     );
   } catch (err) {
@@ -466,7 +464,7 @@ router.patch("/reply/edit/:reply_id", auth, async (req, res) => {
       },
       function (err, doc) {
         if (!err)
-          return res.json({ status: true, message: "Edited successfully" });
+          return res.json({ status: true, data: "Edited successfully" });
       }
     );
   } catch (err) {
@@ -503,7 +501,7 @@ router.patch("/comments/delete/:comment_id", auth, async (req, res) => {
                   if (!err)
                     return res.json({
                       status: true,
-                      message: "comment deleted",
+                      data: "comment deleted",
                     });
                 });
             }
@@ -540,7 +538,7 @@ router.patch("/reply/delete/:reply_id", auth, async (req, res) => {
             if (!err)
               return res.json({
                 status: true,
-                message: "reply deleted",
+                data: "reply deleted",
               });
           });
       }
@@ -573,7 +571,7 @@ router.patch("/delete/:postId", auth, async (req, res) => {
       if (!err)
         return res.json({
           status: true,
-          message: "Post Deleted",
+          data: "Post Deleted",
         });
     });
   } catch (err) {

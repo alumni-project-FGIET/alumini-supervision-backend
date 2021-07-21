@@ -347,7 +347,7 @@ router.post("/addFriend/:friendId", auth, async (req, res) => {
         user: req.user.user.id,
       });
 
-      res.json({ status: true, message: "friend request Cancelled" });
+      res.json({ status: true, data: "friend request Cancelled" });
     } else {
       console.log("hello");
       const newFriend = new FriendModel({
@@ -401,7 +401,7 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
     const isSame = await FriendModel.findById({ _id: req.params.requestId });
 
     if (isSame && isSame.connect) {
-      res.json({ status: true, message: "already friend" });
+      res.json({ status: true, data: "already friend" });
     } else {
       usertarget = await AlumniModel.findOne({
         _id: isSame.user,
@@ -436,7 +436,7 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
         // userData.friendCount = userData.friendList.length;
         // await userData.save();
 
-        res.json({ status: true, message: "friend request rejected" });
+        res.json({ status: true, data: "friend request rejected" });
       } else {
         await FriendModel.findByIdAndUpdate(
           {
@@ -483,7 +483,7 @@ router.patch("/blockUser/:userId", auth, async (req, res) => {
     });
 
     if (!isSame) {
-      res.json({ status: true, message: "you are not friends" });
+      res.json({ status: true, data: "you are not friends" });
     }
     await FriendModel.findByIdAndUpdate(
       {

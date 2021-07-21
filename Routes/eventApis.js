@@ -6,7 +6,6 @@ const EventModel = require("../Modal/EventModel");
 const UserModel = require("../Modal/UserModel");
 const router = express.Router();
 
-
 router.get("/get", async (req, res) => {
   try {
     const eventList = await EventModel.find({ status: true })
@@ -185,7 +184,7 @@ router.patch("/delete/:eventId", auth, async (req, res) => {
       if (!err)
         return res.json({
           status: true,
-          message: "Event Deleted",
+          data: "Event Deleted",
         });
     });
   } catch (err) {

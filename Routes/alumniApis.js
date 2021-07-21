@@ -124,7 +124,8 @@ router.post(
       let alumni = await Alumni.findOne({ email: email });
       if (!alumni) {
         return res.status(400).json({
-          errors: [{ message: "Invalid Credentials, Email not found" }],
+          status: false,
+          message: "Invalid Credentials, Email not found",
         });
       }
       if (alumni.status === true) {
@@ -133,7 +134,7 @@ router.post(
         if (!isMatch) {
           return res
             .status(400)
-            .json({ errors: [{ message: "Invalid Credentials" }] });
+            .json({ status: false, message: "Invalid Credentials" });
         }
         console.log(alumni);
         const payload = {
@@ -239,7 +240,7 @@ router.post(
           if (alumni) {
             return res.status(400).json({
               status: false,
-              errors: { message: "Alumni already exists" },
+              message: "Alumni already exists",
             });
           }
           const salt = await bcrypt.genSalt(10);
@@ -484,7 +485,7 @@ router.post("/send-email", async (req, res) => {
       smtpTransport.sendMail(mailOptions, function (err) {
         console.log("err", err, alumniDet);
         if (!err) {
-          res.json({ status: true, message: "Email Send to mail" });
+          res.json({ status: true, data: "Email Send to mail" });
         } else {
           res.json({ status: false, message: "Email not Send to mail" });
         }
@@ -511,7 +512,7 @@ router.post("/verify", auth, async (req, res) => {
         },
         { upsert: true }
       );
-      res.json({ status: true, message: "verified" });
+      res.json({ status: true, data: "verified" });
     }
   } catch (err) {
     res.json({ status: false, message: "Not verified" });
@@ -582,7 +583,7 @@ router.post("/forgetPassword", async (req, res) => {
 
         smtpTransport.sendMail(mailOptions, function (err) {
           if (!err) {
-            res.json({ status: true, message: "Email Send to mail" });
+            res.json({ status: true, data: "Email Send to mail" });
           } else {
             res.json({ status: false, message: "Email not Send to mail" });
           }
@@ -636,7 +637,7 @@ router.post("/reset", async (req, res) => {
             resetPasswordExpires: null,
           })
           .then(() => {
-            res.status(200).json({ status: true, message: "password updated" });
+            res.status(200).json({ status: true, data: "password updated" });
           });
       });
     });

@@ -110,20 +110,19 @@ router.post(
       if (!user)
         return res
           .status(400)
-          .json({ errors: [{ message: "Invalid Credentials" }] });
+          .json({ status: fasle, message: "Invalid Credentials" });
 
       if (!user.verified === true)
         return res.status(400).json({
-          errors: [
-            { status: false, message: "Verify Your Account Credentials" },
-          ],
+          status: false,
+          message: "Verify Your Account Credentials",
         });
       if (user.status === true) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
           return res
             .status(400)
-            .json({ errors: [{ message: "Invalid Credentials" }] });
+            .json({ status: false, message: "Invalid Credentials" });
 
         const payload = {
           user: {
@@ -199,9 +198,8 @@ router.post(
     if (!firstName || !rollNo || !collegeId || !phoneNo || !password || !email)
       return res.status(400).json({
         status: false,
-        errors: {
-          message: "firstName ,rollNo collegeId phoneNo should not be empty",
-        },
+
+        message: "firstName ,rollNo collegeId phoneNo should not be empty",
       });
 
     try {
@@ -209,7 +207,7 @@ router.post(
       if (user)
         return res
           .status(400)
-          .json({ errors: { message: "User already exists" } });
+          .json({ status: false, message: "User already exists" });
 
       const salt = await bcrypt.genSalt(10);
       const passwordHased = await bcrypt.hash(password, salt);
@@ -425,7 +423,7 @@ router.post("/send-email", async (req, res) => {
             verifyToken: ramdomNo,
           },
         },
-        { upsert: true, message: "mail send " }
+        { upsert: true, data: "mail send " }
       );
       console.log(ramdomNo, userDet[0]._id);
 
@@ -441,7 +439,7 @@ router.post("/send-email", async (req, res) => {
       smtpTransport.sendMail(mailOptions, function (err) {
         console.log("err", err, userDet);
         if (!err) {
-          res.json({ status: true, message: "Email Send to mail" });
+          res.json({ status: true, data: "Email Send to mail" });
         } else {
           res.json({ status: false, message: "Email not Send to mail" });
         }
@@ -506,7 +504,7 @@ router.post("/verify", auth, async (req, res) => {
         },
         { upsert: true }
       );
-      res.json({ status: true, message: "verified" });
+      res.json({ status: true, data: "verified" });
     }
   } catch (err) {
     res.json({ status: false, message: "Not verified" });
@@ -550,7 +548,7 @@ router.post("/forgetPassword", async (req, res) => {
 
         smtpTransport.sendMail(mailOptions, function (err) {
           if (!err) {
-            res.json({ status: true, message: "Email Send to mail" });
+            res.json({ status: true, data: "Email Send to mail" });
           } else {
             res.json({ status: false, message: "Email not Send to mail" });
           }
@@ -599,7 +597,7 @@ router.post("/reset", async (req, res) => {
             resetPasswordExpires: null,
           })
           .then(() => {
-            res.json({ status: true, message: "password updated" });
+            res.json({ status: true, data: "password updated" });
           });
       });
     });

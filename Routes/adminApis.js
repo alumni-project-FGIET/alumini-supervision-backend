@@ -122,7 +122,7 @@ router.post(
       const admin = await Admin.findOne({ email });
       console.log(admin, "no admin");
       if (admin)
-        return res.json({ status: true, message: "Admin already exists" });
+        return res.json({ status: true, data: "Admin already exists" });
 
       const salt = await bcrypt.genSalt(10);
       const passwordHased = await bcrypt.hash(password, salt);
@@ -409,7 +409,7 @@ router.post("/reset", async (req, res) => {
             resetPasswordExpires: null,
           })
           .then(() => {
-            res.status(200).json({ status: true, message: "password updated" });
+            res.status(200).json({ status: true, data: "password updated" });
           });
       });
     });
