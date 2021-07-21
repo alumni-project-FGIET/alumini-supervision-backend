@@ -251,11 +251,15 @@ router.get("/pending", auth, async (req, res) => {
     const send = await FriendModel.find({
       user: req.user.user.id,
       connect: false,
-    }).select("user targetUser target users connect blocked createdAt");
+    }).select(
+      "user targetUser target users connect blocked createdAt updatedAt"
+    );
     const received = await FriendModel.find({
       targetUser: req.user.user.id,
       connect: false,
-    }).select("user targetUser target users connect blocked createdAt");
+    }).select(
+      "user targetUser target users connect blocked createdAt updatedAt"
+    );
     // var send = await FriendModel.find({
     //   user: req.user.user.id,
     //   connect: false,
