@@ -136,7 +136,7 @@ router.get("/myfriend", auth, async (req, res) => {
       // dataNew = data.filter(function (n, i) {
       //   return n._id.toString() !== req.user.user.id.toString();
       // });
-      res.json({ status: true, data: "No data" });
+      res.json({ status: true, data: dataNew });
     } else {
       dataFriend.map((d, k) => {
         datatopush = data.filter(function (n, i) {
