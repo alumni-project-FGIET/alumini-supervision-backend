@@ -113,6 +113,7 @@ router.get("/myfriend", auth, async (req, res) => {
       targetUser: req.user.user.id,
       connect: true,
     }).select("user");
+
     var dataFriend = isfriends.concat(isfriend);
 
     const alumniList = await AlumniModel.find({
@@ -130,12 +131,12 @@ router.get("/myfriend", auth, async (req, res) => {
       .populate("college");
 
     var data = alumniList.concat(userList);
-    const dataNew = [];
+    var dataNew = [];
     if (dataFriend.length === 0) {
-      dataNew = data.filter(function (n, i) {
-        return n._id.toString() !== req.user.user.id.toString();
-      });
-      res.json({ status: true, data: dataNew.length === 0 ? [] : dataNew });
+      // dataNew = data.filter(function (n, i) {
+      //   return n._id.toString() !== req.user.user.id.toString();
+      // });
+      res.json({ status: true, data: "No data" });
     } else {
       dataFriend.map((d, k) => {
         datatopush = data.filter(function (n, i) {
