@@ -16,7 +16,7 @@ const feed = require("./Routes/connectionApis");
 const event = require("./Routes/eventApis");
 const morgan = require("morgan");
 const fs = require("fs");
-
+const todo = require("./Routes/todoApis");
 require("dotenv").config();
 
 const port = process.env.PORT || 5000;
@@ -46,6 +46,7 @@ app.use("/connect", feed);
 app.use("/post", postApi);
 app.use("/event", event);
 app.use("/", upload);
+app.use("/todo", todo);
 
 server.listen(port, function () {
   console.log("listen to server .....", port);
