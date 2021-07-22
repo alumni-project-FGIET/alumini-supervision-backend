@@ -8,7 +8,7 @@ const path = require("path");
 router.get("/get", async (req, res) => {
   try {
     const postList = await Todo.find();
-    res.json(postList);
+    res.json({ status: true, data: postList });
   } catch (err) {
     res.json({ message: err });
   }
