@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../Modal/UserModel");
 const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
 const crypto = require("crypto");
 const auth = require("../Middleware/auth");
 const adminAuth = require("../Middleware/adminAuth");
@@ -395,19 +396,39 @@ router.delete("/delete/:userId", auth, async (req, res) => {
   }
 });
 
-router.post("/send-email", async (req, res) => {
-  const { email } = req.body;
+router.post("/send_email", async (req, res) => {
   try {
+    const { email } = req.body;
+    const oAuth2Client = new google.auth.OAuth2(
+      process.env.CLIENTID,
+      process.env.CLINETSECERT,
+      process.env.REDIRECTURI
+    );
+    oAuth2Client.setCredentials({
+      refresh_token: process.env.CLIENTREFRESHTOKEN,
+    });
+
+    console.log(
+      process.env.CLIENTID,
+      process.env.CLINETSECERT,
+      process.env.REDIRECTURI
+    );
+    const accessToken = await oAuth2Client.getAccessToken();
     const userDet = await User.find({ email: email });
 
     if (userDet) {
-      var smtpTransport = await nodemailer.createTransport({
-        service: "Gmail",
+      var smtpTransport = nodemailer.createTransport({
+        service: "gmail",
         auth: {
-          user: "singhnitesh9001@gmail.com",
-          pass: `${process.env.EMAIL_PASSWORD}`,
+          type: "OAuth2",
+          user: "niteshsingh9001@gmail.com",
+          clientId: process.env.CLIENTID,
+          clientSecret: process.env.CLINETSECERT,
+          refreshToken: process.env.CLIENTREFRESHTOKEN,
+          accessToken: accessToken,
         },
       });
+      console.log("hello");
       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
       ramdomNo = String(ramdomNo);
       ramdomNo = ramdomNo.substring(0, 4);
@@ -436,7 +457,7 @@ router.post("/send-email", async (req, res) => {
           ramdomNo +
           "</h1></div>",
       };
-      smtpTransport.sendMail(mailOptions, function (err) {
+      await smtpTransport.sendMail(mailOptions, function (err) {
         console.log("err", err, userDet);
         if (!err) {
           res.json({ status: true, data: "Email Send to mail" });
