@@ -475,6 +475,32 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
     res.json({ status: false, message: "something went wrong" });
   }
 });
+router.delete("/unfriend/:friendId", auth, async (req, res) => {
+  try {
+    var isfriend;
+    isfriend = await FriendModel.findById({
+      user: req.params.friendId,
+      targetUser: req.user.user.id,
+    });
+    if (!isfriend) {
+      isfriend = await FriendModel.findById({
+        targetUser: req.params.friendId,
+        user: req.user.user.id,
+      });
+    }
+    if (isfriend) {
+      await FriendModel.remove({
+        _id: isfriend.id,
+      });
+      res.json({
+        status: true,
+        message: "Unfriend Successfully ",
+      });
+    }
+  } catch (err) {
+    res.json({ status: false, message: "something went wrong" });
+  }
+});
 
 router.patch("/blockUser/:userId", auth, async (req, res) => {
   try {

@@ -537,7 +537,7 @@ router.post("/send-email", async (req, res) => {
   }
 });
 
-router.post("/verify", auth, async (req, res) => {
+router.post("/verify", async (req, res) => {
   const { email, tokenValue } = req.body;
   try {
     const userDet = await Alumni.find({ email: email });

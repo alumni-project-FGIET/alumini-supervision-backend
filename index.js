@@ -14,6 +14,7 @@ const upload = require("./Routes/DataUploads");
 const postApi = require("./Routes/postAPis");
 const feed = require("./Routes/connectionApis");
 const event = require("./Routes/eventApis");
+const addOn = require("./Routes/AddOn");
 const morgan = require("morgan");
 const fs = require("fs");
 const todo = require("./Routes/todoApis");
@@ -47,7 +48,7 @@ app.use("/post", postApi);
 app.use("/event", event);
 app.use("/", upload);
 app.use("/todo", todo);
-
+app.use("/addOn", addOn);
 server.listen(port, function () {
   console.log("listen to server .....", port);
 });
