@@ -128,6 +128,11 @@ router.post(
           message: "Invalid Credentials, Email not found",
         });
       }
+      if (!alumni.verified === true)
+        return res.status(400).json({
+          status: false,
+          message: "Verify Your Account Credentials",
+        });
       if (alumni.status === true) {
         const isMatch = await bcrypt.compare(password, alumni.password);
         console.log(alumni, isMatch);
@@ -240,7 +245,7 @@ router.post(
           if (alumni) {
             return res.status(400).json({
               status: false,
-              message: "Alumni already exists",
+              message: "Verify Your Account Credentials",
             });
           }
           const salt = await bcrypt.genSalt(10);

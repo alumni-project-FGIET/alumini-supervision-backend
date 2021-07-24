@@ -20,13 +20,15 @@ router.get("/get", alumniAuth, async (req, res) => {
 
     var isfriend = await FriendModel.find({
       user: req.user.user.id,
+      blocked: false,
     }).select("targetUser");
 
     var isfriends = await FriendModel.find({
       targetUser: req.user.user.id,
+      blocked: false,
     }).select("user");
+
     var dataFriend = isfriends.concat(isfriend);
-    console.log(dataFriend);
 
     const alumniList = await AlumniModel.find({
       status: true,
@@ -199,13 +201,15 @@ router.get("/suggest", auth, async (req, res) => {
 
     var isfriend = await FriendModel.find({
       user: req.user.user.id,
+      blocked: false,
     }).select("targetUser");
 
     var isfriends = await FriendModel.find({
       targetUser: req.user.user.id,
+      blocked: false,
     }).select("user");
+
     var dataFriend = isfriends.concat(isfriend);
-    console.log(dataFriend);
 
     const alumniList = await AlumniModel.find({
       status: true,
@@ -475,6 +479,7 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
     res.json({ status: false, message: "something went wrong" });
   }
 });
+
 router.delete("/unfriend/:friendId", auth, async (req, res) => {
   try {
     var isfriend;

@@ -8,34 +8,21 @@ const addOnSchema = Schema(
       required: true,
       unique: true,
     },
-    phoneNo: {
-      type: String,
-      required: true,
-    },
     name: {
       type: String,
       required: true,
     },
     status: {
-      type: Boolean,
-    },
-    password: {
       type: String,
-      required: true,
     },
+
     title: {
       type: String,
     },
     MediaUrl: {
       type: String,
     },
-    admin: {
-      type: Boolean,
-    },
-    resetPasswordToken: {
-      type: String,
-    },
-    resetPasswordExpires: {
+    details: {
       type: String,
     },
   },

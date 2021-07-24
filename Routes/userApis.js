@@ -199,8 +199,7 @@ router.post(
     if (!firstName || !rollNo || !collegeId || !phoneNo || !password || !email)
       return res.status(400).json({
         status: false,
-
-        message: "firstName ,rollNo collegeId phoneNo should not be empty",
+        message: "firstName , rollNo collegeId phoneNo should not be empty",
       });
 
     try {
@@ -209,7 +208,11 @@ router.post(
         return res
           .status(400)
           .json({ status: false, message: "User already exists" });
-
+      if (!user.verified === true)
+        return res.status(400).json({
+          status: false,
+          message: "Verify Your Account Credentials",
+        });
       const salt = await bcrypt.genSalt(10);
       const passwordHased = await bcrypt.hash(password, salt);
 
@@ -287,7 +290,7 @@ router.post(
             status: false,
             errors: "User is not regsitered",
           });
-        console.log(userOne, "show");
+
         const payload = {
           user: {
             email: email,
