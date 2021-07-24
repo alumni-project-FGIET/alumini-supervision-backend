@@ -112,10 +112,7 @@ router.post(
         return res
           .status(400)
           .json({ status: fasle, message: "Invalid Credentials" });
-      if (user)
-        return res
-          .status(400)
-          .json({ status: false, message: "User already exists" });
+
       if (user.verified !== true)
         return res.status(400).json({
           status: false,
@@ -207,10 +204,7 @@ router.post(
 
     try {
       let user = await User.findOne({ email: email });
-      if (user)
-        return res
-          .status(400)
-          .json({ status: false, message: "User already exists" });
+
       if (user.verified !== true)
         return res.status(400).json({
           status: false,

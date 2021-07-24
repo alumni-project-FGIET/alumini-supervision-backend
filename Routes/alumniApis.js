@@ -128,12 +128,7 @@ router.post(
           message: "Invalid Credentials, Email not found",
         });
       }
-      if (alumni) {
-        return res.status(400).json({
-          status: false,
-          message: "User already exists",
-        });
-      }
+
       if (alumni.verified !== true)
         return res.status(400).json({
           status: false,
@@ -254,12 +249,7 @@ router.post(
               message: "Verify Your Account Credentials",
             });
           }
-          if (alumni) {
-            return res.status(400).json({
-              status: false,
-              message: "User already exist",
-            });
-          }
+
           const salt = await bcrypt.genSalt(10);
           const passwordHased = await bcrypt.hash(password, salt);
           var ramdomNo = Math.floor(100000 + Math.random() * 900000);
