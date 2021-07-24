@@ -275,18 +275,36 @@ router.post(
           const response = await newAlumni.save();
 
           if (response) {
+            const oAuth2Client = new google.auth.OAuth2(
+              process.env.CLIENTID,
+              process.env.CLINETSECERT,
+              process.env.REDIRECTURI
+            );
+            oAuth2Client.setCredentials({
+              refresh_token: process.env.CLIENTREFRESHTOKEN,
+            });
+
+            console.log(
+              process.env.CLIENTID,
+              process.env.CLINETSECERT,
+              process.env.REDIRECTURI
+            );
+            const accessToken = await oAuth2Client.getAccessToken();
             var smtpTransport = nodemailer.createTransport({
-              host: "smtp.gmail.com",
-              port: 465,
+              service: "gmail",
               auth: {
-                user: "singhnitesh9001@gmail.com",
-                pass: `${process.env.EMAIL_PASSWORD}`,
+                type: "OAuth2",
+                user: "niteshsingh9001@gmail.com",
+                clientId: process.env.CLIENTID,
+                clientSecret: process.env.CLINETSECERT,
+                refreshToken: process.env.CLIENTREFRESHTOKEN,
+                accessToken: accessToken,
               },
             });
 
             var mailOptions = {
               to: email,
-              from: "singhnitesh9001@gmail.com",
+              from: "niteshsingh9001@gmail.com",
               subject: "Verify Account",
               html:
                 "<div> <h3 style='color:'blue'> You are receiving this because Alumni " +
@@ -444,13 +462,44 @@ router.delete("/delete/:alumniId", auth, async (req, res) => {
 });
 
 router.post("/send-email", async (req, res) => {
-  const { email } = req.body;
   try {
+    const { email } = req.body;
+    const oAuth2Client = new google.auth.OAuth2(
+      process.env.CLIENTID,
+      process.env.CLINETSECERT,
+      process.env.REDIRECTURI
+    );
+    oAuth2Client.setCredentials({
+      refresh_token: process.env.CLIENTREFRESHTOKEN,
+    });
+
+    console.log(
+      process.env.CLIENTID,
+      process.env.CLINETSECERT,
+      process.env.REDIRECTURI
+    );
+    const accessToken = await oAuth2Client.getAccessToken();
+
     const alumniDet = await Alumni.findOne({ email: email });
     if (alumniDet) {
+      var smtpTransport = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          type: "OAuth2",
+          user: "niteshsingh9001@gmail.com",
+          clientId: process.env.CLIENTID,
+          clientSecret: process.env.CLINETSECERT,
+          refreshToken: process.env.CLIENTREFRESHTOKEN,
+          accessToken: accessToken,
+        },
+      });
+      console.log("hello");
       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
       ramdomNo = String(ramdomNo);
       ramdomNo = ramdomNo.substring(0, 4);
+      const alumniData = {
+        verifyToken: ramdomNo,
+      };
 
       await Alumni.findByIdAndUpdate(
         {
@@ -463,16 +512,8 @@ router.post("/send-email", async (req, res) => {
         },
         { upsert: true }
       );
-      console.log(ramdomNo, alumniDet._id);
-      var smtpTransport = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-          user: "singhnitesh9001@gmail.com",
-          pass: `${process.env.EMAIL_PASSWORD}`,
-        },
-      });
+      console.log(ramdomNo, userDet[0]._id);
+
       var mailOptions = {
         to: email,
         from: "singhnitesh9001@gmail.com",
@@ -482,8 +523,8 @@ router.post("/send-email", async (req, res) => {
           ramdomNo +
           "</h1></div>",
       };
-      smtpTransport.sendMail(mailOptions, function (err) {
-        console.log("err", err, alumniDet);
+      await smtpTransport.sendMail(mailOptions, function (err) {
+        console.log("err", err, userDet);
         if (!err) {
           res.json({ status: true, data: "Email Send to mail" });
         } else {
@@ -645,4 +686,5 @@ router.post("/reset", async (req, res) => {
     res.status(400).json({ status: false, message: "Some internal Issue" });
   }
 });
+
 module.exports = router;
