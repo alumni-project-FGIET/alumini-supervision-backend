@@ -483,21 +483,20 @@ router.patch("/accept/:requestId", auth, async (req, res) => {
 router.delete("/unfriend/:friendId", auth, async (req, res) => {
   try {
     var isfriend;
-    isfriend = await FriendModel.findById({
+    isfriend = await FriendModel.findOne({
       user: req.params.friendId,
       targetUser: req.user.user.id,
-      connect: true,
     });
     if (!isfriend) {
-      isfriend = await FriendModel.findById({
+      isfriend = await FriendModel.findOne({
         targetUser: req.params.friendId,
         user: req.user.user.id,
-        connect: true,
       });
     }
-    if (isfriend) {
+    console.log(isfriend._id, "dd");
+    if (isfriend._id) {
       await FriendModel.remove({
-        _id: isfriend.id,
+        _id: isfriend._id,
       });
       res.json({
         status: true,
