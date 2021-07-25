@@ -66,7 +66,6 @@ const alumnischema = Schema(
       {
         from: {
           type: Date,
-          required: true,
         },
         to: {
           type: Date,
@@ -76,11 +75,9 @@ const alumnischema = Schema(
         },
         jobTitle: {
           type: String,
-          required: true,
         },
         jobCompany: {
           type: String,
-          required: true,
         },
         jobLocation: {
           type: Schema.Types.ObjectId,

@@ -282,43 +282,48 @@ router.post(
               status: false,
               message: "Email not Send to mail",
             });
+          } else {
+            return res.json({
+              status: true,
+              message: "Email Send to mail",
+            });
           }
 
-          const userOne = User.findOne({ email: email });
+          // const userOne = User.findOne({ email: email });
 
-          if (!userOne)
-            return res.json({
-              status: false,
-              errors: "User is not regsitered",
-            });
+          // if (!userOne)
+          //   return res.json({
+          //     status: false,
+          //     errors: "User is not regsitered",
+          //   });
 
-          const payload = {
-            user: {
-              email: email,
-              id: userOne._id,
-              alumni: false,
-            },
-          };
+          // const payload = {
+          //   user: {
+          //     email: email,
+          //     id: userOne._id,
+          //     alumni: false,
+          //   },
+          // };
 
-          jwt.sign(payload, process.env.JWT, function (err, token) {
-            console.log(err, token);
-            if (token) {
-              res.json({
-                status: true,
-                data: {
-                  firstName: firstName,
-                  lastName: lastName,
-                  email: email,
-                  status: status,
-                  rollNo: rollNo,
-                  phoneNo: phoneNo,
-                  admin: false,
-                  college: collegeId,
-                  token: token,
-                },
-              });
-            }
-          });
+          // jwt.sign(payload, process.env.JWT, function (err, token) {
+          //   console.log(err, token);
+          //   if (token) {
+          //     res.json({
+          //       status: true,
+          //       data: {
+          //         firstName: firstName,
+          //         lastName: lastName,
+          //         email: email,
+          //         status: status,
+          //         rollNo: rollNo,
+          //         phoneNo: phoneNo,
+          //         admin: false,
+          //         college: collegeId,
+          //         token: token,
+          //       },
+          //     });
+          // }
+          // });
         });
       }
     } catch (err) {
@@ -492,44 +497,6 @@ router.post("/send-email", async (req, res) => {
     res.json({ status: false, message: err });
   }
 });
-
-// router.post("/send-email", async (req, res) => {
-//   const { email } = req.body;
-//   try {
-//     const userDet = await User.find({ email: email });
-//     if (userDet) {
-//       var smtpTransport = nodemailer.createTransport({
-//         host: "smtp.gmail.com",
-//         port: 465,
-//         auth: {
-//           user: "singhnitesh9001@gmail.com",
-//           pass: `${process.env.EMAIL_PASSWORD}`,
-//         },
-//       });
-//       var mailOptions = {
-//         to: email,
-//         from: "singhnitesh9001@gmail.com",
-//         subject: "Verify Account",
-//         html:
-//           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
-//           "</h1></div>",
-//       };
-//       smtpTransport.sendMail(mailOptions, function (err) {
-//         if (!err) {
-//           res.json({ status: true, message: "Email Send to mail" });
-//         } else {
-//           res.json({
-//             status: false,
-//             message: "Email not Send to mail",
-//             error: err,
-//           });
-//         }
-//       });
-//     }
-//   } catch (err) {
-//     res.json({ message: err });
-//   }
-// });
 
 router.post("/verify", async (req, res) => {
   const { email, tokenValue } = req.body;
