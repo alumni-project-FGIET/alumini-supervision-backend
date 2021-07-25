@@ -486,11 +486,13 @@ router.delete("/unfriend/:friendId", auth, async (req, res) => {
     isfriend = await FriendModel.findById({
       user: req.params.friendId,
       targetUser: req.user.user.id,
+      connect: true,
     });
     if (!isfriend) {
       isfriend = await FriendModel.findById({
         targetUser: req.params.friendId,
         user: req.user.user.id,
+        connect: true,
       });
     }
     if (isfriend) {
