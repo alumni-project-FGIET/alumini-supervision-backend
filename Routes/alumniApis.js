@@ -243,12 +243,11 @@ router.post(
       } else {
         try {
           let alumni = await Alumni.findOne({ email: email });
-          if (alumni.verified !== true) {
+          if (alumni && alumni.verified !== true)
             return res.status(400).json({
               status: false,
               message: "Verify Your Account Credentials",
             });
-          }
 
           const salt = await bcrypt.genSalt(10);
           const passwordHased = await bcrypt.hash(password, salt);
@@ -280,7 +279,7 @@ router.post(
           });
 
           const response = await newAlumni.save();
-
+          console.log(response);
           if (response) {
             const oAuth2Client = new google.auth.OAuth2(
               process.env.CLIENTID,
@@ -291,11 +290,6 @@ router.post(
               refresh_token: process.env.CLIENTREFRESHTOKEN,
             });
 
-            console.log(
-              process.env.CLIENTID,
-              process.env.CLINETSECERT,
-              process.env.REDIRECTURI
-            );
             const accessToken = await oAuth2Client.getAccessToken();
             var smtpTransport = nodemailer.createTransport({
               service: "gmail",
@@ -364,9 +358,8 @@ router.post(
                 });
               }
             });
-          } else req.send({ status: false, err: "error" });
+          }
         } catch (err) {
-          console.log(req.body);
           res.json({ status: false, message: "Alumni not added ", error: err });
         }
       }
