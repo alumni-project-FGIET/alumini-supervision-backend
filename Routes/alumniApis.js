@@ -414,6 +414,78 @@ router.delete("/delete/:alumniId", auth, async (req, res) => {
 });
 
 router.post("/send-email", async (req, res) => {
+  // try {
+  //   const { email } = req.body;
+  //   const oAuth2Client = new google.auth.OAuth2(
+  //     process.env.CLIENTID,
+  //     process.env.CLINETSECERT,
+  //     process.env.REDIRECTURI
+  //   );
+  //   oAuth2Client.setCredentials({
+  //     refresh_token: process.env.CLIENTREFRESHTOKEN,
+  //   });
+
+  //   console.log(
+  //     process.env.CLIENTID,
+  //     process.env.CLINETSECERT,
+  //     process.env.REDIRECTURI
+  //   );
+  //   const accessToken = await oAuth2Client.getAccessToken();
+
+  //   const alumniDet = await Alumni.findOne({ email: email });
+  //   if (alumniDet) {
+  //     var smtpTransport = nodemailer.createTransport({
+  //       service: "gmail",
+  //       auth: {
+  //         type: "OAuth2",
+  //         user: "niteshsingh9001@gmail.com",
+  //         clientId: process.env.CLIENTID,
+  //         clientSecret: process.env.CLINETSECERT,
+  //         refreshToken: process.env.CLIENTREFRESHTOKEN,
+  //         accessToken: accessToken,
+  //       },
+  //     });
+  //     console.log("hello");
+  //     var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+  //     ramdomNo = String(ramdomNo);
+  //     ramdomNo = ramdomNo.substring(0, 4);
+  //     console.log(ramdomNo);
+  //     await Alumni.findByIdAndUpdate(
+  //       {
+  //         _id: alumniDet._id,
+  //       },
+  //       {
+  //         $set: {
+  //           verifyToken: ramdomNo,
+  //         },
+  //       },
+  //       { upsert: true }
+  //     );
+  //     console.log(ramdomNo, userDet[0]._id);
+
+  //     var mailOptions = {
+  //       to: email,
+  //       from: "singhnitesh9001@gmail.com",
+  //       subject: "Verify Account",
+  //       html:
+  //         "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+  //         ramdomNo +
+  //         "</h1></div>",
+  //     };
+  //     smtpTransport.sendMail(mailOptions, function (err) {
+  //       console.log("err", err, userDet);
+  //       if (!err) {
+  //         res.json({ status: true, data: "Email Send to mail" });
+  //       } else {
+  //         res.json({ status: false, message: "Email not Send to mail" });
+  //       }
+  //     });
+  //   } else {
+  //     res.json({ status: false, message: "Email not Send to mail" });
+  //   }
+  // } catch (err) {
+  //   res.json({ status: false, message: "Error Occured", error: err });
+  // }
   try {
     const { email } = req.body;
     const oAuth2Client = new google.auth.OAuth2(
@@ -431,9 +503,9 @@ router.post("/send-email", async (req, res) => {
       process.env.REDIRECTURI
     );
     const accessToken = await oAuth2Client.getAccessToken();
+    const alumiDet = await Alumni.find({ email: email });
 
-    const alumniDet = await Alumni.findOne({ email: email });
-    if (alumniDet) {
+    if (alumiDet) {
       var smtpTransport = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -445,17 +517,14 @@ router.post("/send-email", async (req, res) => {
           accessToken: accessToken,
         },
       });
-      console.log("hello");
+      console.log("hello", alumiDet);
       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
       ramdomNo = String(ramdomNo);
       ramdomNo = ramdomNo.substring(0, 4);
-      const alumniData = {
-        verifyToken: ramdomNo,
-      };
 
       await Alumni.findByIdAndUpdate(
         {
-          _id: alumniDet._id,
+          _id: alumiDet[0]._id,
         },
         {
           $set: {
@@ -464,28 +533,28 @@ router.post("/send-email", async (req, res) => {
         },
         { upsert: true }
       );
-      console.log(ramdomNo, userDet[0]._id);
+      console.log(ramdomNo, alumiDet[0]._id);
 
       var mailOptions = {
         to: email,
-        from: "singhnitesh9001@gmail.com",
+        from: "niteshsingh9001@gmail.com",
         subject: "Verify Account",
         html:
           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
           ramdomNo +
           "</h1></div>",
       };
-      await smtpTransport.sendMail(mailOptions, function (err) {
-        console.log("err", err, userDet);
+      console.log(ramdomNo);
+      smtpTransport.sendMail(mailOptions, function (err) {
         if (!err) {
-          res.json({ status: true, message: "Email Send to mail" });
+          res.json({ status: true, data: "Email Send to mail" });
         } else {
           res.json({ status: false, message: "Email not Send to mail" });
         }
       });
     }
   } catch (err) {
-    res.json({ status: false, message: err });
+    res.json({ status: false, message: "Error occured", error: err });
   }
 });
 

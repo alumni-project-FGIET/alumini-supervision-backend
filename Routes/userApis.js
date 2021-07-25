@@ -469,7 +469,7 @@ router.post("/send-email", async (req, res) => {
             verifyToken: ramdomNo,
           },
         },
-        { upsert: true, data: "mail send " }
+        { upsert: true }
       );
       console.log(ramdomNo, userDet[0]._id);
 
