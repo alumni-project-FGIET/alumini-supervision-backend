@@ -459,9 +459,7 @@ router.post("/send-email", async (req, res) => {
       var ramdomNo = Math.floor(100000 + Math.random() * 900000);
       ramdomNo = String(ramdomNo);
       ramdomNo = ramdomNo.substring(0, 4);
-      const alumniData = {
-        verifyToken: ramdomNo,
-      };
+
       await User.findByIdAndUpdate(
         {
           _id: userDet[0]._id,
@@ -484,7 +482,7 @@ router.post("/send-email", async (req, res) => {
           ramdomNo +
           "</h1></div>",
       };
-      await smtpTransport.sendMail(mailOptions, function (err) {
+      smtpTransport.sendMail(mailOptions, function (err) {
         console.log("err", err, userDet);
         if (!err) {
           res.json({ status: true, data: "Email Send to mail" });
@@ -494,7 +492,7 @@ router.post("/send-email", async (req, res) => {
       });
     }
   } catch (err) {
-    res.json({ status: false, message: err });
+    res.json({ status: false, message: "Error occured", error: err });
   }
 });
 
@@ -514,7 +512,7 @@ router.post("/verify", async (req, res) => {
         },
         { upsert: true }
       );
-      res.json({ status: true, data: "verified" });
+      res.json({ status: true, data: "Verified" });
     }
   } catch (err) {
     res.json({ status: false, message: "Not verified" });

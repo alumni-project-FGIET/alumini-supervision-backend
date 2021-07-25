@@ -478,7 +478,7 @@ router.post("/send-email", async (req, res) => {
       await smtpTransport.sendMail(mailOptions, function (err) {
         console.log("err", err, userDet);
         if (!err) {
-          res.json({ status: true, data: "Email Send to mail" });
+          res.json({ status: true, message: "Email Send to mail" });
         } else {
           res.json({ status: false, message: "Email not Send to mail" });
         }
