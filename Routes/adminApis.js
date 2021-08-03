@@ -8,6 +8,8 @@ var dotenv = require("dotenv");
 const adminAuth = require("../Middleware/adminAuth");
 require("dotenv").config();
 const crypto = require("crypto");
+const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
 
 //GET ALL College LIST
 router.get("/get", adminAuth, async (req, res) => {
@@ -356,66 +358,170 @@ router.delete("/:adminId", adminAuth, async (req, res) => {
 //     res.json({ status: false, message: "Not verified" });
 //   }
 // });
-
 router.post("/forgetPassword", async (req, res) => {
   try {
+    const oAuth2Client = new google.auth.OAuth2(
+      process.env.CLIENTID,
+      process.env.CLINETSECERT,
+      process.env.REDIRECTURI
+    );
+    oAuth2Client.setCredentials({
+      refresh_token: process.env.CLIENTREFRESHTOKEN,
+    });
+    var accessToken = await oAuth2Client.getAccessToken();
+
     crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
-      console.log(token, err);
+
       Admin.findOne({ email: req.body.email }).then((response) => {
-        console.log(response);
         if (!response)
-          return res.json({ status: false, message: "No admin found" });
+          return res.json({ status: false, message: "No user found" });
         if (!response.status)
-          return res.json({ status: false, message: "Admin is blocked " });
-        response.resetPasswordToken = token;
+          return res.json({ status: false, message: "User is blocked " });
+
+        var smtpTransport = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            type: "OAuth2",
+            user: "niteshsingh9001@gmail.com",
+            clientId: process.env.CLIENTID,
+            clientSecret: process.env.CLINETSECERT,
+            refreshToken: process.env.CLIENTREFRESHTOKEN,
+            accessToken: accessToken,
+          },
+        });
+
+        var ramdomNo = Math.floor(100000 + Math.random() * 900000);
+        ramdomNo = String(ramdomNo);
+        ramdomNo = ramdomNo.substring(0, 4);
+
+        var mailOptions = {
+          to: req.body.email,
+          from: "niteshsingh9001@gmail.com",
+          subject: "Verify Account",
+          html:
+            "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
+            ramdomNo +
+            "</h1></div>",
+        };
+
+        smtpTransport.sendMail(mailOptions, function (err) {
+          if (!err) {
+            res.json({ status: true, data: "Email Send to mail" });
+          } else {
+            res.json({ status: false, message: "Email not Send to mail" });
+          }
+        });
+        response.verifyToken = ramdomNo;
         response.resetPasswordExpires = Date.now(); // 1 hour
         response.save().then((ress) => {
           console.log(ress);
-          return res.json({ status: true, data: ress.resetPasswordToken });
+          return res.json({
+            status: true,
+            message: "Otp send sucessfully",
+          });
         });
       });
     });
   } catch (err) {
-    res.json({ status: false, message: "Internal Server issue" });
+    res.json({ status: false, message: "something went wrong" });
   }
 });
 
 router.post("/reset", async (req, res) => {
   try {
-    const admin = await Admin.findOne({
-      resetPasswordToken: req.body.resetPasswordToken,
+    const user = await Admin.findOne({
+      email: req.body.email,
     });
-    if (!admin)
+    console.log(user);
+    if (!user)
       return res.json({
         status: false,
-        message: "No admin is found with this token",
+        message: "No user is found ",
       });
-    if (!admin.resetPasswordToken)
+    if (req.body.otpEmail !== user.verifyToken)
       return res.json({
         status: false,
-        message: "password reset link is invalid or has expired",
+        message: "otp is invalid or has expired",
       });
-
     bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(req.body.password, salt, (err, hash) => {
         if (err) throw err;
-        admin.password = hash;
-        admin.save();
-        admin
+        user.password = hash;
+        user.save();
+        user
           .updateOne({
             password: hash,
-            resetPasswordToken: null,
-            resetPasswordExpires: null,
+            verifyToken: null,
           })
           .then(() => {
-            res.status(200).json({ status: true, data: "password updated" });
+            res.json({ status: true, data: "password updated" });
           });
       });
     });
   } catch (err) {
-    res.status(400).json({ status: false, message: "Some internal Issue" });
+    res.json({ status: false, message: "Some internal Issue" });
   }
 });
+// router.post("/forgetPassword", async (req, res) => {
+//   try {
+//     crypto.randomBytes(20, function (err, buf) {
+//       var token = buf.toString("hex");
+//       console.log(token, err);
+//       Admin.findOne({ email: req.body.email }).then((response) => {
+//         console.log(response);
+//         if (!response)
+//           return res.json({ status: false, message: "No admin found" });
+//         if (!response.status)
+//           return res.json({ status: false, message: "Admin is blocked " });
+//         response.resetPasswordToken = token;
+//         response.resetPasswordExpires = Date.now(); // 1 hour
+//         response.save().then((ress) => {
+//           console.log(ress);
+//           return res.json({ status: true, data: ress.resetPasswordToken });
+//         });
+//       });
+//     });
+//   } catch (err) {
+//     res.json({ status: false, message: "Internal Server issue" });
+//   }
+// });
+
+// router.post("/reset", async (req, res) => {
+//   try {
+//     const admin = await Admin.findOne({
+//       resetPasswordToken: req.body.resetPasswordToken,
+//     });
+//     if (!admin)
+//       return res.json({
+//         status: false,
+//         message: "No admin is found with this token",
+//       });
+//     if (!admin.resetPasswordToken)
+//       return res.json({
+//         status: false,
+//         message: "password reset link is invalid or has expired",
+//       });
+
+//     bcrypt.genSalt(10, (err, salt) => {
+//       bcrypt.hash(req.body.password, salt, (err, hash) => {
+//         if (err) throw err;
+//         admin.password = hash;
+//         admin.save();
+//         admin
+//           .updateOne({
+//             password: hash,
+//             resetPasswordToken: null,
+//             resetPasswordExpires: null,
+//           })
+//           .then(() => {
+//             res.status(200).json({ status: true, data: "password updated" });
+//           });
+//       });
+//     });
+//   } catch (err) {
+//     res.status(400).json({ status: false, message: "Some internal Issue" });
+//   }
+// });
 
 module.exports = router;

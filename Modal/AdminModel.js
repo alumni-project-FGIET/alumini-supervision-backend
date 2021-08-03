@@ -32,7 +32,7 @@ const adminSchema = Schema(
     admin: {
       type: Boolean,
     },
-    resetPasswordToken: {
+    verifyToken: {
       type: String,
     },
     resetPasswordExpires: {

@@ -521,6 +521,16 @@ router.post("/verify", async (req, res) => {
 
 router.post("/forgetPassword", async (req, res) => {
   try {
+    var oAuth2Client = new google.auth.OAuth2(
+      process.env.CLIENTID,
+      process.env.CLINETSECERT,
+      process.env.REDIRECTURI
+    );
+    oAuth2Client.setCredentials({
+      refresh_token: process.env.CLIENTREFRESHTOKEN,
+    });
+    var accessToken = await oAuth2Client.getAccessToken();
+
     crypto.randomBytes(20, function (err, buf) {
       var token = buf.toString("hex");
 
@@ -531,12 +541,14 @@ router.post("/forgetPassword", async (req, res) => {
           return res.json({ status: false, message: "User is blocked " });
 
         var smtpTransport = nodemailer.createTransport({
-          service: "Gmail",
-          host: "smtp.gmail.com",
-          port: 465,
+          service: "gmail",
           auth: {
-            user: "singhnitesh9001@gmail.com",
-            pass: `${process.env.EMAIL_PASSWORD}`,
+            type: "OAuth2",
+            user: "niteshsingh9001@gmail.com",
+            clientId: process.env.CLIENTID,
+            clientSecret: process.env.CLINETSECERT,
+            refreshToken: process.env.CLIENTREFRESHTOKEN,
+            accessToken: accessToken,
           },
         });
 
@@ -546,7 +558,7 @@ router.post("/forgetPassword", async (req, res) => {
 
         var mailOptions = {
           to: req.body.email,
-          from: "singhnitesh9001@gmail.com",
+          from: "niteshsingh9001@gmail.com",
           subject: "Verify Account",
           html:
             "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
@@ -561,14 +573,13 @@ router.post("/forgetPassword", async (req, res) => {
             res.json({ status: false, message: "Email not Send to mail" });
           }
         });
-        response.resetPasswordToken = token;
         response.verifyToken = ramdomNo;
         response.resetPasswordExpires = Date.now(); // 1 hour
         response.save().then((ress) => {
           console.log(ress);
           return res.json({
             status: true,
-            data: ress.resetPasswordToken,
+            message: "Otp send sucessfully",
           });
         });
       });
@@ -581,12 +592,12 @@ router.post("/forgetPassword", async (req, res) => {
 router.post("/reset", async (req, res) => {
   try {
     const user = await User.findOne({
-      resetPasswordToken: req.body.resetPasswordToken,
+      email: req.body.email,
     });
     if (!user)
       return res.json({
         status: false,
-        message: "No user is found with this token or token is invalid",
+        message: "No user is found ",
       });
     if (req.body.otpEmail !== user.verifyToken)
       return res.json({
@@ -601,8 +612,7 @@ router.post("/reset", async (req, res) => {
         user
           .updateOne({
             password: hash,
-            resetPasswordToken: null,
-            resetPasswordExpires: null,
+            verifyToken: null,
           })
           .then(() => {
             res.json({ status: true, data: "password updated" });
