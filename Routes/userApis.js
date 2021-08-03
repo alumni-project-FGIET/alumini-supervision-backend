@@ -574,6 +574,7 @@ router.post("/forgetPassword", async (req, res) => {
           }
         });
         response.verifyToken = ramdomNo;
+        response.resetPasswordToken = token;
         response.resetPasswordExpires = Date.now(); // 1 hour
         response.save().then((ress) => {
           console.log(ress);
@@ -592,12 +593,17 @@ router.post("/forgetPassword", async (req, res) => {
 router.post("/reset", async (req, res) => {
   try {
     const user = await User.findOne({
-      email: req.body.email,
+      resetPasswordToken: req.body.resetPasswordToken,
     });
     if (!user)
       return res.json({
         status: false,
         message: "No user is found ",
+      });
+    if (!user.resetPasswordToken)
+      return res.json({
+        status: false,
+        message: "password reset link is invalid or has expired",
       });
     if (req.body.otpEmail !== user.verifyToken)
       return res.json({
@@ -612,7 +618,9 @@ router.post("/reset", async (req, res) => {
         user
           .updateOne({
             password: hash,
+            resetPasswordToken: null,
             verifyToken: null,
+            resetPasswordExpires: null,
           })
           .then(() => {
             res.json({ status: true, data: "password updated" });

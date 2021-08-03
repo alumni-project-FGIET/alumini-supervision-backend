@@ -663,6 +663,7 @@ router.post("/forgetPassword", async (req, res) => {
           }
         });
         response.verifyToken = ramdomNo;
+        response.resetPasswordToken = token;
         response.resetPasswordExpires = Date.now(); // 1 hour
         response.save().then((ress) => {
           return res.json({
@@ -680,7 +681,7 @@ router.post("/forgetPassword", async (req, res) => {
 router.post("/reset", async (req, res) => {
   try {
     const alumni = await Alumni.findOne({
-      email: req.body.email,
+      resetPasswordToken: req.body.resetPasswordToken,
     });
     if (!alumni)
       return res.json({
@@ -706,7 +707,9 @@ router.post("/reset", async (req, res) => {
         alumni
           .updateOne({
             password: hash,
+            resetPasswordToken: null,
             verifyToken: null,
+
             resetPasswordExpires: null,
           })
           .then(() => {

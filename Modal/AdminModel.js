@@ -35,6 +35,9 @@ const adminSchema = Schema(
     verifyToken: {
       type: String,
     },
+    resetPasswordToken: {
+      type: String,
+    },
     resetPasswordExpires: {
       type: String,
     },
