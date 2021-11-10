@@ -258,7 +258,7 @@ router.post(
           service: "gmail",
           auth: {
             type: "OAuth2",
-            user: "niteshsingh9001@gmail.com",
+            user: "your mail",
             clientId: process.env.CLIENTID,
             clientSecret: process.env.CLINETSECERT,
             refreshToken: process.env.CLIENTREFRESHTOKEN,
@@ -268,7 +268,7 @@ router.post(
 
         var mailOptions = {
           to: email,
-          from: "niteshsingh9001@gmail.com",
+          from: "dsddss",
           subject: "Verify Account",
           html:
             "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
@@ -448,7 +448,7 @@ router.post("/send-email", async (req, res) => {
         service: "gmail",
         auth: {
           type: "OAuth2",
-          user: "niteshsingh9001@gmail.com",
+          user: "",
           clientId: process.env.CLIENTID,
           clientSecret: process.env.CLINETSECERT,
           refreshToken: process.env.CLIENTREFRESHTOKEN,
@@ -475,7 +475,7 @@ router.post("/send-email", async (req, res) => {
 
       var mailOptions = {
         to: email,
-        from: "niteshsingh9001@gmail.com",
+        from: "",
         subject: "Verify Account",
         html:
           "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
@@ -544,7 +544,7 @@ router.post("/forgetPassword", async (req, res) => {
           service: "gmail",
           auth: {
             type: "OAuth2",
-            user: "niteshsingh9001@gmail.com",
+            user: "",
             clientId: process.env.CLIENTID,
             clientSecret: process.env.CLINETSECERT,
             refreshToken: process.env.CLIENTREFRESHTOKEN,
@@ -558,7 +558,7 @@ router.post("/forgetPassword", async (req, res) => {
 
         var mailOptions = {
           to: req.body.email,
-          from: "niteshsingh9001@gmail.com",
+          from: "",
           subject: "Verify Account",
           html:
             "<div><h3 style='color:'blue'> You are receiving this because you (or someone else) have requested the verification for your account.<br /> Do not share this OTP with any other </h3> <h3>If you did not request this, please ignore this email </h3> <h1 style='color:red;background:pink;textAlign:center'>" +
